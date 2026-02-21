@@ -15,6 +15,7 @@ import type * as http from "../http.js";
 import type * as messages from "../messages.js";
 import type * as sessionMembers from "../sessionMembers.js";
 import type * as sessions from "../sessions.js";
+import type * as teaching from "../teaching.js";
 import type * as users from "../users.js";
 import type * as whiteboard from "../whiteboard.js";
 
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   messages: typeof messages;
   sessionMembers: typeof sessionMembers;
   sessions: typeof sessions;
+  teaching: typeof teaching;
   users: typeof users;
   whiteboard: typeof whiteboard;
 }>;

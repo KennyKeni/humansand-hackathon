@@ -10,10 +10,12 @@ export default function ExcalidrawWrapper({
   roomId,
   viewOnly = false,
   currentUserId,
+  onAPIReady,
 }: {
   roomId: string;
   viewOnly?: boolean;
   currentUserId?: string | null;
+  onAPIReady?: (api: ExcalidrawImperativeAPI) => void;
 }) {
   const [excalidrawAPI, setExcalidrawAPI] =
     useState<ExcalidrawImperativeAPI | null>(null);
@@ -41,7 +43,10 @@ export default function ExcalidrawWrapper({
   return (
     <div style={{ width: "100%", height: "100%" }}>
       <Excalidraw
-        excalidrawAPI={(api) => setExcalidrawAPI(api)}
+        excalidrawAPI={(api) => {
+          setExcalidrawAPI(api);
+          onAPIReady?.(api);
+        }}
         initialData={initialData}
         isCollaborating={true}
         viewModeEnabled={viewOnly}

@@ -44,6 +44,26 @@ const schema = defineSchema({
     elements: v.string(),
     cursors: v.optional(v.string()),
   }).index("by_roomId", ["roomId"]),
+
+  teachingSessions: defineTable({
+    sessionCode: v.string(),
+    status: v.union(
+      v.literal("capturing"),
+      v.literal("synthesizing"),
+      v.literal("completed"),
+    ),
+    startedAt: v.number(),
+    completedAt: v.optional(v.number()),
+    summary: v.optional(v.string()),
+    snapshotCount: v.number(),
+  }).index("by_sessionCode", ["sessionCode"]),
+
+  teachingSnapshots: defineTable({
+    sessionCode: v.string(),
+    description: v.string(),
+    capturedAt: v.number(),
+    elementHash: v.number(),
+  }).index("by_sessionCode", ["sessionCode"]),
 });
 
 export default schema;

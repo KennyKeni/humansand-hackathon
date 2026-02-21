@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Lock } from "lucide-react";
 import dynamic from "next/dynamic";
+import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
 const ExcalidrawWrapper = dynamic(
   () => import("@/components/ExcalidrawWrapper"),
@@ -14,6 +15,8 @@ const ExcalidrawWrapper = dynamic(
 );
 import { SessionHeader } from "@/components/session/SessionHeader";
 import { FloatingPanel } from "@/components/session/FloatingPanel";
+import { useTeachingCapture } from "@/hooks/useTeachingCapture";
+import { useTeachingSimulation } from "@/hooks/useTeachingSimulation";
 
 export type ActiveContext =
   | { type: "main" }
@@ -25,6 +28,22 @@ export default function SessionPage() {
   const [panelOpen, setPanelOpen] = useState(true);
   const [activeContext, setActiveContext] = useState<ActiveContext>({ type: "main" });
   const hasJoined = useRef(false);
+  const [excalidrawAPI, setExcalidrawAPI] =
+    useState<ExcalidrawImperativeAPI | null>(null);
+  const handleAPIReady = useCallback(
+    (api: ExcalidrawImperativeAPI) => setExcalidrawAPI(api),
+    [],
+  );
+
+  const teachingCapture = useTeachingCapture(excalidrawAPI);
+  const simulation = useTeachingSimulation(excalidrawAPI);
+
+  // Live snapshot subscription — only active when capturing or done
+  const isCapturing = teachingCapture.status !== "idle";
+  const liveSnapshots = useQuery(
+    api.teaching.getCaptureSnapshots,
+    isCapturing ? { sessionCode: code } : "skip",
+  );
 
   const session = useQuery(api.sessions.getByCode, { code });
   const membership = useQuery(
@@ -101,7 +120,15 @@ export default function SessionPage() {
 
   return (
     <div className="flex h-screen flex-col">
-      <SessionHeader session={session} memberCount={members.length} />
+      <SessionHeader
+        session={session}
+        memberCount={members.length}
+        isCreator={membership.role === "creator"}
+        teachingCapture={teachingCapture}
+        sessionCode={code}
+        simulation={simulation}
+        liveSnapshots={liveSnapshots ?? []}
+      />
 
       {myGroups.length > 0 && (
         <div className="flex items-center gap-1 border-b px-4 py-1.5 bg-background">
@@ -140,6 +167,7 @@ export default function SessionPage() {
             roomId={activeContext.type === "main" ? code : `group-${activeContext.groupId}`}
             viewOnly={isViewOnly}
             currentUserId={me?._id}
+            onAPIReady={handleAPIReady}
           />
         </main>
 
