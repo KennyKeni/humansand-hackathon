@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
+import { Lock } from "lucide-react";
 import dynamic from "next/dynamic";
 
 const ExcalidrawWrapper = dynamic(
@@ -13,10 +15,15 @@ const ExcalidrawWrapper = dynamic(
 import { SessionHeader } from "@/components/session/SessionHeader";
 import { FloatingPanel } from "@/components/session/FloatingPanel";
 
+export type ActiveContext =
+  | { type: "main" }
+  | { type: "group"; groupId: Id<"groups">; name: string };
+
 export default function SessionPage() {
   const { code } = useParams<{ code: string }>();
   const [joinError, setJoinError] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(true);
+  const [activeContext, setActiveContext] = useState<ActiveContext>({ type: "main" });
   const hasJoined = useRef(false);
 
   const session = useQuery(api.sessions.getByCode, { code });
@@ -31,6 +38,11 @@ export default function SessionPage() {
     ) ?? [];
   const me = useQuery(api.users.getMe);
   const join = useMutation(api.sessionMembers.join);
+
+  const myGroups = useQuery(
+    api.groups.getMyGroups,
+    session ? { sessionId: session._id } : "skip"
+  ) ?? [];
 
   useEffect(() => {
     if (!session || membership !== null || hasJoined.current || joinError) return;
@@ -85,19 +97,72 @@ export default function SessionPage() {
     );
   }
 
+  const isViewOnly = activeContext.type === "main" && membership.role !== "creator";
+
   return (
     <div className="flex h-screen flex-col">
       <SessionHeader session={session} memberCount={members.length} />
+
+      {myGroups.length > 0 && (
+        <div className="flex items-center gap-1 border-b px-4 py-1.5 bg-background">
+          <button
+            onClick={() => setActiveContext({ type: "main" })}
+            className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
+              activeContext.type === "main"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted/50"
+            }`}
+          >
+            Main Board
+          </button>
+          {myGroups.map((group) => (
+            <button
+              key={group._id}
+              onClick={() =>
+                setActiveContext({ type: "group", groupId: group._id, name: group.name })
+              }
+              className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
+                activeContext.type === "group" && activeContext.groupId === group._id
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted/50"
+              }`}
+            >
+              {group.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="relative flex-1 overflow-hidden">
         <main className="h-full w-full">
-          <ExcalidrawWrapper roomId={code} />
+          <ExcalidrawWrapper
+            key={activeContext.type === "main" ? "main" : activeContext.groupId}
+            roomId={activeContext.type === "main" ? code : `group-${activeContext.groupId}`}
+            viewOnly={isViewOnly}
+            currentUserId={me?._id}
+          />
         </main>
+
+        {isViewOnly && (
+          <div className="absolute left-3 top-3 z-20 flex items-center gap-1.5 rounded bg-background/80 px-2.5 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
+            <Lock className="h-3 w-3" />
+            View Only
+          </div>
+        )}
+        {activeContext.type === "group" && (
+          <div className="absolute left-3 top-14 z-20 rounded bg-background/80 px-2.5 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
+            {activeContext.name}
+          </div>
+        )}
+
         <FloatingPanel
           sessionId={session._id}
           currentUserId={me?._id ?? null}
           members={members}
           isOpen={panelOpen}
           onToggle={() => setPanelOpen((prev) => !prev)}
+          activeContext={activeContext}
+          role={membership.role}
         />
       </div>
     </div>
