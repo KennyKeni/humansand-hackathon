@@ -9,10 +9,14 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as checkIns from "../checkIns.js";
+import type * as comprehension from "../comprehension.js";
 import type * as fix from "../fix.js";
 import type * as groups from "../groups.js";
 import type * as http from "../http.js";
+import type * as matches from "../matches.js";
 import type * as messages from "../messages.js";
+import type * as seed from "../seed.js";
 import type * as sessionMembers from "../sessionMembers.js";
 import type * as sessions from "../sessions.js";
 import type * as teaching from "../teaching.js";
@@ -27,10 +31,14 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  checkIns: typeof checkIns;
+  comprehension: typeof comprehension;
   fix: typeof fix;
   groups: typeof groups;
   http: typeof http;
+  matches: typeof matches;
   messages: typeof messages;
+  seed: typeof seed;
   sessionMembers: typeof sessionMembers;
   sessions: typeof sessions;
   teaching: typeof teaching;

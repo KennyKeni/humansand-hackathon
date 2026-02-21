@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
 export const create = mutation({
@@ -37,6 +37,40 @@ export const create = mutation({
       name: trimmedName,
       memberIds: uniqueMemberIds,
       createdBy: userId,
+    });
+
+    const mainWhiteboard = await ctx.db
+      .query("whiteboards")
+      .withIndex("by_roomId", (q) => q.eq("roomId", session.code))
+      .first();
+
+    await ctx.db.insert("whiteboards", {
+      roomId: `group-${groupId}`,
+      elements: mainWhiteboard?.elements ?? "[]",
+    });
+
+    return groupId;
+  },
+});
+
+export const createFromSystem = mutation({
+  args: {
+    sessionId: v.id("sessions"),
+    name: v.string(),
+    memberIds: v.array(v.id("users")),
+    creatorId: v.id("users"),
+  },
+  handler: async (ctx, { sessionId, name, memberIds, creatorId }) => {
+    const session = await ctx.db.get(sessionId);
+    if (!session) throw new Error("Session not found");
+
+    const uniqueMemberIds = [...new Set(memberIds)];
+
+    const groupId = await ctx.db.insert("groups", {
+      sessionId,
+      name,
+      memberIds: uniqueMemberIds,
+      createdBy: creatorId,
     });
 
     const mainWhiteboard = await ctx.db

@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Doc } from "@/convex/_generated/dataModel";
+import { Doc, Id } from "@/convex/_generated/dataModel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 interface TeachingCaptureControls {
   status: "idle" | "capturing" | "synthesizing" | "done";
@@ -39,6 +40,14 @@ export function SessionHeader({
   sessionCode,
   simulation,
   liveSnapshots,
+  checkInPhase,
+  sessionId,
+  checkInCompleted,
+  checkInTotal,
+  onStartCheckIn,
+  onNewLesson,
+  captureSessionStatus,
+  captureSessionSummary,
 }: {
   session: Doc<"sessions">;
   memberCount: number;
@@ -47,6 +56,14 @@ export function SessionHeader({
   sessionCode?: string;
   simulation?: SimulationControls;
   liveSnapshots?: Snapshot[];
+  checkInPhase?: string;
+  sessionId?: Id<"sessions">;
+  checkInCompleted?: number;
+  checkInTotal?: number;
+  onStartCheckIn?: () => void;
+  onNewLesson?: () => void;
+  captureSessionStatus?: string;
+  captureSessionSummary?: string;
 }) {
   const [copied, setCopied] = useState(false);
   const router = useRouter();
@@ -57,15 +74,25 @@ export function SessionHeader({
     setTimeout(() => setCopied(false), 2000);
   }
 
-  const captureStatus = teachingCapture?.status ?? "idle";
+  // Use the hook status, but fall back to database status when hook has reset (page refresh)
+  const hookStatus = teachingCapture?.status ?? "idle";
+  const dbCompleted = captureSessionStatus === "completed";
+  const captureStatus = hookStatus !== "idle" ? hookStatus : (dbCompleted ? "done" : "idle");
+
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [transcriptionOpen, setTranscriptionOpen] = useState(false);
-  const hasSummary = captureStatus === "done" && teachingCapture?.summary;
+  const hasSummary = (captureStatus === "done" && teachingCapture?.summary) ||
+    (dbCompleted && captureSessionSummary);
+  const summaryText = teachingCapture?.summary || captureSessionSummary || null;
   const hasSnapshots = liveSnapshots && liveSnapshots.length > 0;
   const showTranscriptionToggle =
     captureStatus === "capturing" ||
     captureStatus === "synthesizing" ||
     captureStatus === "done";
+
+  // Show "Start Check-In" button when synthesis is done and no check-in started yet
+  const showStartCheckIn =
+    isCreator && captureStatus === "done" && !checkInPhase;
 
   return (
     <div>
@@ -116,19 +143,45 @@ export function SessionHeader({
                   >
                     {summaryOpen ? "Hide Summary" : "View Summary"}
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setSummaryOpen(false);
-                      teachingCapture.reset();
-                    }}
-                  >
-                    New Lesson
-                  </Button>
+                  {!checkInPhase && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setSummaryOpen(false);
+                        teachingCapture.reset();
+                        onNewLesson?.();
+                      }}
+                    >
+                      New Lesson
+                    </Button>
+                  )}
                 </>
               )}
             </>
+          )}
+          {/* Start Check-In button */}
+          {showStartCheckIn && onStartCheckIn && (
+            <Button size="sm" onClick={onStartCheckIn}>
+              Start Check-In
+            </Button>
+          )}
+          {/* Check-in phase badges */}
+          {isCreator && checkInPhase === "checking-in" && (
+            <Badge variant="outline" className="animate-pulse">
+              Check-In in Progress
+              {checkInCompleted !== undefined && checkInTotal !== undefined && (
+                <span className="ml-1">
+                  ({checkInCompleted}/{checkInTotal})
+                </span>
+              )}
+            </Badge>
+          )}
+          {isCreator && checkInPhase === "matched" && (
+            <Badge variant="secondary">Matches Ready</Badge>
+          )}
+          {isCreator && checkInPhase === "grouped" && (
+            <Badge variant="secondary">Discussion Rooms Active</Badge>
           )}
           {isCreator && showTranscriptionToggle && (
             <Button
@@ -170,7 +223,7 @@ export function SessionHeader({
       {hasSummary && summaryOpen && (
         <div className="border-b bg-muted/30 px-6 py-4 max-h-64 overflow-y-auto">
           <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">
-            {teachingCapture.summary}
+            {summaryText}
           </div>
         </div>
       )}

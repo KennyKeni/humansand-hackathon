@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, MessageSquare } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { MemberList } from "./MemberList";
 import { ChatPanel } from "./chat/ChatPanel";
+import { CheckInChat } from "./CheckInChat";
+import { TeacherCheckInDashboard } from "./TeacherCheckInDashboard";
 import type { ActiveContext } from "@/app/session/[code]/page";
 
 type Member = {
@@ -14,7 +16,12 @@ type Member = {
   role: "creator" | "participant" | "professor" | "student";
 };
 
-type Tab = "chat" | "members";
+type CheckIn = {
+  _id: Id<"checkIns">;
+  status: "active" | "completed" | "expired";
+} | null;
+
+type Tab = "chat" | "members" | "check-in";
 
 export function FloatingPanel({
   sessionId,
@@ -24,6 +31,9 @@ export function FloatingPanel({
   onToggle,
   activeContext,
   role,
+  checkIn,
+  checkInPhase,
+  sessionCode,
 }: {
   sessionId: Id<"sessions">;
   currentUserId: Id<"users"> | null;
@@ -32,8 +42,23 @@ export function FloatingPanel({
   onToggle: () => void;
   activeContext: ActiveContext;
   role: "creator" | "participant" | "professor" | "student";
+  checkIn?: CheckIn;
+  checkInPhase?: string;
+  sessionCode?: string;
 }) {
+  const isCreator = role === "creator" || role === "professor";
+  const hasCheckInTab =
+    (isCreator && checkInPhase) ||
+    (!isCreator && checkIn);
+
   const [tab, setTab] = useState<Tab>("chat");
+
+  // Auto-switch to check-in tab when check-in becomes available
+  useEffect(() => {
+    if (hasCheckInTab && tab === "chat") {
+      setTab("check-in");
+    }
+  }, [hasCheckInTab]);
 
   if (!isOpen) {
     return (
@@ -47,7 +72,7 @@ export function FloatingPanel({
   }
 
   return (
-    <div className="absolute right-0 top-0 bottom-0 w-80 z-30 flex flex-col bg-background border-l shadow-lg">
+    <div className="absolute right-0 top-0 bottom-0 w-80 z-30 flex flex-col bg-background border-l shadow-lg overflow-hidden">
       <div className="flex items-center justify-between border-b px-3 py-2">
         <div className="flex gap-1">
           <TabButton active={tab === "chat"} onClick={() => setTab("chat")}>
@@ -56,6 +81,11 @@ export function FloatingPanel({
           <TabButton active={tab === "members"} onClick={() => setTab("members")}>
             Members ({members.length})
           </TabButton>
+          {hasCheckInTab && (
+            <TabButton active={tab === "check-in"} onClick={() => setTab("check-in")}>
+              Check-In
+            </TabButton>
+          )}
         </div>
         <button
           onClick={onToggle}
@@ -71,13 +101,30 @@ export function FloatingPanel({
             currentUserId={currentUserId}
             activeContext={activeContext}
           />
-        ) : (
+        ) : tab === "members" ? (
           <MemberList
             members={members}
             role={role}
             sessionId={sessionId}
           />
-        )}
+        ) : tab === "check-in" ? (
+          isCreator ? (
+            <TeacherCheckInDashboard
+              sessionId={sessionId}
+              sessionCode={sessionCode ?? ""}
+              checkInPhase={checkInPhase}
+              members={members}
+              creatorId={currentUserId!}
+            />
+          ) : checkIn ? (
+            <CheckInChat
+              checkIn={checkIn}
+              sessionId={sessionId}
+              sessionCode={sessionCode ?? ""}
+              currentUserId={currentUserId!}
+            />
+          ) : null
+        ) : null}
       </div>
     </div>
   );

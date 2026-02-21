@@ -34,11 +34,13 @@ export default function SessionPage() {
     (api: ExcalidrawImperativeAPI) => setExcalidrawAPI(api),
     [],
   );
+  const [startingCheckIn, setStartingCheckIn] = useState(false);
+  const resetSession = useMutation(api.teaching.resetSession);
 
   const teachingCapture = useTeachingCapture(excalidrawAPI);
   const simulation = useTeachingSimulation(excalidrawAPI);
 
-  // Live snapshot subscription — only active when capturing or done
+  // Live snapshot subscription
   const isCapturing = teachingCapture.status !== "idle";
   const liveSnapshots = useQuery(
     api.teaching.getCaptureSnapshots,
@@ -63,6 +65,23 @@ export default function SessionPage() {
     session ? { sessionId: session._id } : "skip"
   ) ?? [];
 
+  // Check-in queries
+  const captureSession = useQuery(
+    api.teaching.getCaptureSession,
+    { sessionCode: code },
+  );
+  const checkInPhase = captureSession?.checkInPhase ?? undefined;
+
+  const myCheckIn = useQuery(
+    api.checkIns.getMyCheckIn,
+    session ? { sessionId: session._id } : "skip",
+  );
+
+  const checkInStatus = useQuery(
+    api.checkIns.getSessionCheckInStatus,
+    session && checkInPhase ? { sessionId: session._id } : "skip",
+  );
+
   useEffect(() => {
     if (!session || membership !== null || hasJoined.current || joinError) return;
     hasJoined.current = true;
@@ -72,6 +91,30 @@ export default function SessionPage() {
       hasJoined.current = false;
     });
   }, [session, membership, joinError]);
+
+  async function handleNewLesson() {
+    try {
+      await resetSession({ sessionCode: code });
+    } catch (err) {
+      console.error("Failed to reset lesson:", err);
+    }
+  }
+
+  async function handleStartCheckIn() {
+    if (!session || startingCheckIn) return;
+    setStartingCheckIn(true);
+    try {
+      await fetch("/api/check-in/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionCode: code, sessionId: session._id }),
+      });
+    } catch (err) {
+      console.error("Failed to start check-in:", err);
+    } finally {
+      setStartingCheckIn(false);
+    }
+  }
 
   if (joinError) {
     return (
@@ -128,6 +171,14 @@ export default function SessionPage() {
         sessionCode={code}
         simulation={simulation}
         liveSnapshots={liveSnapshots ?? []}
+        checkInPhase={checkInPhase}
+        sessionId={session._id}
+        checkInCompleted={checkInStatus?.completed}
+        checkInTotal={checkInStatus?.total}
+        onStartCheckIn={handleStartCheckIn}
+        onNewLesson={handleNewLesson}
+        captureSessionStatus={captureSession?.status}
+        captureSessionSummary={captureSession?.summary ?? undefined}
       />
 
       {myGroups.length > 0 && (
@@ -191,6 +242,9 @@ export default function SessionPage() {
           onToggle={() => setPanelOpen((prev) => !prev)}
           activeContext={activeContext}
           role={membership.role}
+          checkIn={myCheckIn ?? undefined}
+          checkInPhase={checkInPhase}
+          sessionCode={code}
         />
       </div>
     </div>

@@ -67,3 +67,24 @@ export const listMembers = query({
     );
   },
 });
+
+// System-level query for API routes (no auth check)
+export const listMembersSystem = query({
+  args: { sessionId: v.id("sessions") },
+  handler: async (ctx, { sessionId }) => {
+    const members = await ctx.db
+      .query("sessionMembers")
+      .withIndex("by_session", (q) => q.eq("sessionId", sessionId))
+      .collect();
+
+    return await Promise.all(
+      members.map(async (member) => {
+        const user = await ctx.db.get(member.userId);
+        return {
+          ...member,
+          name: user?.name ?? "Anonymous",
+        };
+      })
+    );
+  },
+});

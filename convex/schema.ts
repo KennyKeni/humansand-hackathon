@@ -28,6 +28,7 @@ const schema = defineSchema({
     groupId: v.optional(v.id("groups")),
     authorId: v.id("users"),
     body: v.string(),
+    isSystem: v.optional(v.boolean()),
   })
     .index("by_session", ["sessionId"])
     .index("by_group", ["groupId"]),
@@ -56,6 +57,14 @@ const schema = defineSchema({
     completedAt: v.optional(v.number()),
     summary: v.optional(v.string()),
     snapshotCount: v.number(),
+    checkInPhase: v.optional(
+      v.union(
+        v.literal("checking-in"),
+        v.literal("matching"),
+        v.literal("matched"),
+        v.literal("grouped"),
+      ),
+    ),
   }).index("by_sessionCode", ["sessionCode"]),
 
   teachingSnapshots: defineTable({
@@ -64,6 +73,59 @@ const schema = defineSchema({
     capturedAt: v.number(),
     elementHash: v.number(),
   }).index("by_sessionCode", ["sessionCode"]),
+
+  checkIns: defineTable({
+    sessionId: v.id("sessions"),
+    userId: v.id("users"),
+    status: v.union(
+      v.literal("active"),
+      v.literal("completed"),
+      v.literal("expired"),
+    ),
+    lessonSummary: v.string(),
+    startedAt: v.number(),
+    completedAt: v.optional(v.number()),
+  })
+    .index("by_session", ["sessionId"])
+    .index("by_session_user", ["sessionId", "userId"]),
+
+  checkInMessages: defineTable({
+    checkInId: v.id("checkIns"),
+    role: v.union(v.literal("student"), v.literal("assistant")),
+    body: v.string(),
+    userId: v.optional(v.id("users")),
+  }).index("by_checkIn", ["checkInId"]),
+
+  comprehension: defineTable({
+    sessionId: v.id("sessions"),
+    userId: v.id("users"),
+    checkInId: v.id("checkIns"),
+    topics: v.array(
+      v.object({
+        name: v.string(),
+        understood: v.boolean(),
+        confidence: v.string(),
+        notes: v.optional(v.string()),
+      }),
+    ),
+    overallSummary: v.string(),
+    extractedAt: v.number(),
+  })
+    .index("by_session", ["sessionId"])
+    .index("by_session_user", ["sessionId", "userId"]),
+
+  proposedMatches: defineTable({
+    sessionId: v.id("sessions"),
+    groups: v.array(
+      v.object({
+        name: v.string(),
+        memberIds: v.array(v.id("users")),
+        reason: v.string(),
+      }),
+    ),
+    unmatchedIds: v.array(v.id("users")),
+    computedAt: v.number(),
+  }).index("by_session", ["sessionId"]),
 });
 
 export default schema;

@@ -132,6 +132,56 @@ export const getCaptureSession = query({
   },
 });
 
+export const resetSession = mutation({
+  args: { sessionCode: v.string() },
+  handler: async (ctx, args) => {
+    const session = await ctx.db
+      .query("teachingSessions")
+      .withIndex("by_sessionCode", (q) =>
+        q.eq("sessionCode", args.sessionCode),
+      )
+      .first();
+
+    if (session) {
+      await ctx.db.delete(session._id);
+    }
+
+    // Delete snapshots too
+    const snapshots = await ctx.db
+      .query("teachingSnapshots")
+      .withIndex("by_sessionCode", (q) =>
+        q.eq("sessionCode", args.sessionCode),
+      )
+      .collect();
+    for (const snap of snapshots) {
+      await ctx.db.delete(snap._id);
+    }
+  },
+});
+
+export const setCheckInPhase = mutation({
+  args: {
+    sessionCode: v.string(),
+    checkInPhase: v.union(
+      v.literal("checking-in"),
+      v.literal("matching"),
+      v.literal("matched"),
+      v.literal("grouped"),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const session = await ctx.db
+      .query("teachingSessions")
+      .withIndex("by_sessionCode", (q) =>
+        q.eq("sessionCode", args.sessionCode),
+      )
+      .first();
+
+    if (!session) return;
+    await ctx.db.patch(session._id, { checkInPhase: args.checkInPhase });
+  },
+});
+
 export const getCaptureSnapshots = query({
   args: { sessionCode: v.string() },
   handler: async (ctx, args) => {

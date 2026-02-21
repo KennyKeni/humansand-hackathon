@@ -38,6 +38,26 @@ export const send = mutation({
   },
 });
 
+// System-level send for API routes (no auth check)
+export const sendSystem = mutation({
+  args: {
+    sessionId: v.id("sessions"),
+    authorId: v.id("users"),
+    body: v.string(),
+    groupId: v.optional(v.id("groups")),
+    isSystem: v.optional(v.boolean()),
+  },
+  handler: async (ctx, { sessionId, authorId, body, groupId, isSystem }) => {
+    await ctx.db.insert("messages", {
+      sessionId,
+      authorId,
+      body,
+      groupId,
+      isSystem: isSystem ?? undefined,
+    });
+  },
+});
+
 export const listBySession = query({
   args: { sessionId: v.id("sessions") },
   handler: async (ctx, { sessionId }) => {
@@ -58,7 +78,7 @@ export const listBySession = query({
         const user = await ctx.db.get(msg.authorId);
         return {
           ...msg,
-          authorName: user?.name ?? "Anonymous",
+          authorName: msg.isSystem ? "AI Teaching Assistant" : (user?.name ?? "Anonymous"),
         };
       })
     );
@@ -94,7 +114,7 @@ export const listByGroup = query({
         const user = await ctx.db.get(msg.authorId);
         return {
           ...msg,
-          authorName: user?.name ?? "Anonymous",
+          authorName: msg.isSystem ? "AI Teaching Assistant" : (user?.name ?? "Anonymous"),
         };
       })
     );
