@@ -4,7 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import dynamic from "next/dynamic";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+
+const ExcalidrawWrapper = dynamic(
+  () => import("@/components/ExcalidrawWrapper"),
+  { ssr: false },
+);
 import { SessionHeader } from "@/components/session/SessionHeader";
 import { MemberList } from "@/components/session/MemberList";
 import { ChatPanel } from "@/components/session/chat/ChatPanel";
@@ -107,8 +113,8 @@ export default function SessionPage() {
             </span>
           </button>
         )}
-        <main className="flex-1 flex items-center justify-center bg-muted/30">
-          <p className="text-muted-foreground text-sm">Whiteboard coming soon</p>
+        <main className="flex-1 overflow-hidden">
+          <ExcalidrawWrapper roomId={code} />
         </main>
         {chatOpen ? (
           <aside className="w-80 shrink-0 border-l flex flex-col h-full">

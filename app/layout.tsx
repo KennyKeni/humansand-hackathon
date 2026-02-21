@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "StudySync",
-  description: "AI-powered collaborative learning platform",
+  title: "Collaborative Whiteboard",
+  description: "Real-time collaborative whiteboard powered by Excalidraw",
 };
 
 export default function RootLayout({

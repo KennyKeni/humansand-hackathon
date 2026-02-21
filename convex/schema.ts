@@ -17,7 +17,7 @@ const schema = defineSchema({
   sessionMembers: defineTable({
     sessionId: v.id("sessions"),
     userId: v.id("users"),
-    role: v.union(v.literal("creator"), v.literal("participant")),
+    role: v.union(v.literal("creator"), v.literal("participant"), v.literal("professor"), v.literal("student")),
   })
     .index("by_session", ["sessionId"])
     .index("by_user", ["userId"])
@@ -28,6 +28,12 @@ const schema = defineSchema({
     authorId: v.id("users"),
     body: v.string(),
   }).index("by_session", ["sessionId"]),
+
+  whiteboards: defineTable({
+    roomId: v.string(),
+    elements: v.string(),
+    cursors: v.optional(v.string()),
+  }).index("by_roomId", ["roomId"]),
 });
 
 export default schema;
