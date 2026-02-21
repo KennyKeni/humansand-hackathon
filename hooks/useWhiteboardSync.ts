@@ -10,8 +10,6 @@ import {
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import type { ExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 
-const ROOM_ID = "default";
-
 function generateUserId() {
   return Math.random().toString(36).slice(2, 10);
 }
@@ -38,13 +36,14 @@ function getColorForUser(userId: string) {
 
 export function useWhiteboardSync(
   excalidrawAPI: ExcalidrawImperativeAPI | null,
+  roomId: string = "default",
 ) {
   const userIdRef = useRef<string>("");
   if (!userIdRef.current) {
     userIdRef.current = generateUserId();
   }
 
-  const whiteboard = useQuery(api.whiteboard.get, { roomId: ROOM_ID });
+  const whiteboard = useQuery(api.whiteboard.get, { roomId });
   const saveElements = useMutation(api.whiteboard.saveElements);
   const updateCursorMutation = useMutation(api.whiteboard.updateCursor);
   const removeCursorMutation = useMutation(api.whiteboard.removeCursor);
@@ -123,7 +122,7 @@ export function useWhiteboardSync(
   useEffect(() => {
     const userId = userIdRef.current;
     return () => {
-      removeCursorMutation({ roomId: ROOM_ID, userId });
+      removeCursorMutation({ roomId: roomId, userId });
     };
   }, [removeCursorMutation]);
 
@@ -138,7 +137,7 @@ export function useWhiteboardSync(
       saveTimerRef.current = setTimeout(() => {
         const serialized = JSON.stringify(elements);
         lastSavedVersionRef.current = serialized;
-        saveElements({ roomId: ROOM_ID, elements: serialized });
+        saveElements({ roomId: roomId, elements: serialized });
       }, 300);
     },
     [saveElements],
@@ -154,7 +153,7 @@ export function useWhiteboardSync(
 
       cursorTimerRef.current = setTimeout(() => {
         updateCursorMutation({
-          roomId: ROOM_ID,
+          roomId: roomId,
           userId: userIdRef.current,
           cursor: JSON.stringify({
             x: payload.pointer.x,

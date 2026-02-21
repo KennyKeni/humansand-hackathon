@@ -8,6 +8,13 @@
  * @module
  */
 
+import type * as auth from "../auth.js";
+import type * as fix from "../fix.js";
+import type * as http from "../http.js";
+import type * as messages from "../messages.js";
+import type * as sessionMembers from "../sessionMembers.js";
+import type * as sessions from "../sessions.js";
+import type * as users from "../users.js";
 import type * as whiteboard from "../whiteboard.js";
 
 import type {
@@ -17,6 +24,13 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  auth: typeof auth;
+  fix: typeof fix;
+  http: typeof http;
+  messages: typeof messages;
+  sessionMembers: typeof sessionMembers;
+  sessions: typeof sessions;
+  users: typeof users;
   whiteboard: typeof whiteboard;
 }>;
 

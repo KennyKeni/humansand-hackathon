@@ -6,12 +6,12 @@ import "@excalidraw/excalidraw/index.css";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import { useWhiteboardSync } from "@/hooks/useWhiteboardSync";
 
-export default function ExcalidrawWrapper() {
+export default function ExcalidrawWrapper({ roomId }: { roomId: string }) {
   const [excalidrawAPI, setExcalidrawAPI] =
     useState<ExcalidrawImperativeAPI | null>(null);
 
   const { handleChange, handlePointerUpdate, isLoading, initialData } =
-    useWhiteboardSync(excalidrawAPI);
+    useWhiteboardSync(excalidrawAPI, roomId);
 
   if (isLoading) {
     return (
