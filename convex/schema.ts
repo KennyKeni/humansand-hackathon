@@ -26,9 +26,10 @@ const schema = defineSchema({
   messages: defineTable({
     sessionId: v.id("sessions"),
     groupId: v.optional(v.id("groups")),
-    authorId: v.id("users"),
+    authorId: v.optional(v.id("users")),
     body: v.string(),
     isSystem: v.optional(v.boolean()),
+    role: v.optional(v.union(v.literal("user"), v.literal("ai"))),
   })
     .index("by_session", ["sessionId"])
     .index("by_group", ["groupId"]),
@@ -38,6 +39,8 @@ const schema = defineSchema({
     name: v.string(),
     memberIds: v.array(v.id("users")),
     createdBy: v.id("users"),
+    endedAt: v.optional(v.number()),
+    summary: v.optional(v.string()),
   }).index("by_session", ["sessionId"]),
 
   whiteboards: defineTable({

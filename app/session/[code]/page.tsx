@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { Lock } from "lucide-react";
+import { Lock, ChevronDown, ClipboardList } from "lucide-react";
 import dynamic from "next/dynamic";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
@@ -17,6 +17,7 @@ import { SessionHeader } from "@/components/session/SessionHeader";
 import { FloatingPanel } from "@/components/session/FloatingPanel";
 import { useTeachingCapture } from "@/hooks/useTeachingCapture";
 import { useTeachingSimulation } from "@/hooks/useTeachingSimulation";
+import { SummaryModal } from "@/components/session/SummaryModal";
 
 export type ActiveContext =
   | { type: "main" }
@@ -27,6 +28,7 @@ export default function SessionPage() {
   const [joinError, setJoinError] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(true);
   const [activeContext, setActiveContext] = useState<ActiveContext>({ type: "main" });
+  const [summaryModalOpen, setSummaryModalOpen] = useState(false);
   const hasJoined = useRef(false);
   const [excalidrawAPI, setExcalidrawAPI] =
     useState<ExcalidrawImperativeAPI | null>(null);
@@ -59,6 +61,7 @@ export default function SessionPage() {
     ) ?? [];
   const me = useQuery(api.users.getMe);
   const join = useMutation(api.sessionMembers.join);
+  const endAll = useMutation(api.groups.endAll);
 
   const myGroups = useQuery(
     api.groups.getMyGroups,
@@ -159,7 +162,19 @@ export default function SessionPage() {
     );
   }
 
-  const isViewOnly = activeContext.type === "main" && membership.role !== "creator";
+  const activeGroups = myGroups.filter((g) => !g.endedAt);
+  const archivedGroups = myGroups.filter((g) => !!g.endedAt);
+
+  const activeGroup =
+    activeContext.type === "group"
+      ? myGroups.find((g) => g._id === activeContext.groupId)
+      : null;
+
+  const isEnded = !!activeGroup?.endedAt;
+
+  const isViewOnly =
+    (activeContext.type === "main" && membership.role !== "creator") ||
+    (activeContext.type === "group" && isEnded);
 
   return (
     <div className="flex h-screen flex-col">
@@ -182,33 +197,22 @@ export default function SessionPage() {
       />
 
       {myGroups.length > 0 && (
-        <div className="flex items-center gap-1 border-b px-4 py-1.5 bg-background">
-          <button
-            onClick={() => setActiveContext({ type: "main" })}
-            className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
-              activeContext.type === "main"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted/50"
-            }`}
-          >
-            Main Board
-          </button>
-          {myGroups.map((group) => (
-            <button
-              key={group._id}
-              onClick={() =>
-                setActiveContext({ type: "group", groupId: group._id, name: group.name })
-              }
-              className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
-                activeContext.type === "group" && activeContext.groupId === group._id
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted/50"
-              }`}
-            >
-              {group.name}
-            </button>
-          ))}
-        </div>
+        <TabBar
+          activeGroups={activeGroups}
+          archivedGroups={archivedGroups}
+          activeContext={activeContext}
+          setActiveContext={setActiveContext}
+          isCreator={membership.role === "creator"}
+          onEndAll={async () => {
+            try {
+              await endAll({ sessionId: session._id });
+              setSummaryModalOpen(true);
+              setActiveContext({ type: "main" });
+            } catch {
+              // mutation failed - don't open modal
+            }
+          }}
+        />
       )}
 
       <div className="relative flex-1 overflow-hidden">
@@ -234,6 +238,15 @@ export default function SessionPage() {
           </div>
         )}
 
+        {membership.role === "creator" && archivedGroups.length > 0 && !panelOpen && (
+          <button
+            onClick={() => setSummaryModalOpen(true)}
+            className="absolute right-0 top-28 z-30 rounded-l-md bg-background border border-r-0 shadow-md p-2 hover:bg-muted/50"
+          >
+            <ClipboardList className="h-5 w-5" />
+          </button>
+        )}
+
         <FloatingPanel
           sessionId={session._id}
           currentUserId={me?._id ?? null}
@@ -245,8 +258,118 @@ export default function SessionPage() {
           checkIn={myCheckIn ?? undefined}
           checkInPhase={checkInPhase}
           sessionCode={code}
+          isEnded={isEnded}
         />
       </div>
+
+      <SummaryModal
+        open={summaryModalOpen}
+        onClose={() => setSummaryModalOpen(false)}
+        sessionId={session._id}
+      />
+    </div>
+  );
+}
+
+type GroupDoc = {
+  _id: Id<"groups">;
+  name: string;
+  endedAt?: number;
+};
+
+function TabBar({
+  activeGroups,
+  archivedGroups,
+  activeContext,
+  setActiveContext,
+  isCreator,
+  onEndAll,
+}: {
+  activeGroups: GroupDoc[];
+  archivedGroups: GroupDoc[];
+  activeContext: ActiveContext;
+  setActiveContext: (ctx: ActiveContext) => void;
+  isCreator: boolean;
+  onEndAll: () => void;
+}) {
+  const [archivedOpen, setArchivedOpen] = useState(false);
+
+  return (
+    <div className="flex items-center gap-1 border-b px-4 py-1.5 bg-background">
+      <button
+        onClick={() => setActiveContext({ type: "main" })}
+        className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
+          activeContext.type === "main"
+            ? "bg-primary text-primary-foreground"
+            : "text-muted-foreground hover:bg-muted/50"
+        }`}
+      >
+        Main Board
+      </button>
+      {activeGroups.map((group) => (
+        <button
+          key={group._id}
+          onClick={() =>
+            setActiveContext({ type: "group", groupId: group._id, name: group.name })
+          }
+          className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
+            activeContext.type === "group" && activeContext.groupId === group._id
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:bg-muted/50"
+          }`}
+        >
+          {group.name}
+        </button>
+      ))}
+      {isCreator && activeGroups.length > 0 && (
+        <button
+          onClick={onEndAll}
+          className="rounded px-3 py-1 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+        >
+          End All Groups
+        </button>
+      )}
+      {archivedGroups.length > 0 && (
+        <div className="relative ml-auto">
+          <button
+            onClick={() => setArchivedOpen((prev) => !prev)}
+            className={`flex items-center gap-1 rounded px-3 py-1 text-sm font-medium transition-colors ${
+              activeContext.type === "group" && archivedGroups.some((g) => g._id === activeContext.groupId)
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted/50"
+            }`}
+          >
+            Archived ({archivedGroups.length})
+            <ChevronDown className={`h-3 w-3 transition-transform ${archivedOpen ? "rotate-180" : ""}`} />
+          </button>
+          {archivedOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setArchivedOpen(false)}
+              />
+              <div className="absolute right-0 top-full z-50 mt-1 min-w-[160px] rounded-md border bg-background py-1 shadow-md">
+                {archivedGroups.map((group) => (
+                  <button
+                    key={group._id}
+                    onClick={() => {
+                      setActiveContext({ type: "group", groupId: group._id, name: group.name });
+                      setArchivedOpen(false);
+                    }}
+                    className={`w-full px-3 py-1.5 text-left text-sm transition-colors hover:bg-muted/50 ${
+                      activeContext.type === "group" && activeContext.groupId === group._id
+                        ? "font-medium text-foreground"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    {group.name}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

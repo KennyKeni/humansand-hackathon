@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query, internalMutation } from "./_generated/server";
+import { mutation, query, internalQuery, internalMutation } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
 export const create = mutation({
@@ -106,5 +107,66 @@ export const getMyGroups = query({
     if (isCreator) return allGroups;
 
     return allGroups.filter((g) => g.memberIds.includes(userId));
+  },
+});
+
+export const end = mutation({
+  args: { groupId: v.id("groups") },
+  handler: async (ctx, { groupId }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    const group = await ctx.db.get(groupId);
+    if (!group) throw new Error("Group not found");
+    if (group.endedAt) throw new Error("Group already ended");
+
+    const session = await ctx.db.get(group.sessionId);
+    if (!session) throw new Error("Session not found");
+    if (session.createdBy !== userId) throw new Error("Only the session creator can end groups");
+
+    await ctx.db.patch(groupId, { endedAt: Date.now() });
+    await ctx.scheduler.runAfter(0, internal.ai.summarizeGroup, { groupId });
+  },
+});
+
+export const endAll = mutation({
+  args: { sessionId: v.id("sessions") },
+  handler: async (ctx, { sessionId }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    const session = await ctx.db.get(sessionId);
+    if (!session) throw new Error("Session not found");
+    if (session.createdBy !== userId) throw new Error("Only the session creator can end groups");
+
+    const groups = await ctx.db
+      .query("groups")
+      .withIndex("by_session", (q) => q.eq("sessionId", sessionId))
+      .collect();
+
+    const active = groups.filter((g) => !g.endedAt);
+    for (const group of active) {
+      await ctx.db.patch(group._id, { endedAt: Date.now() });
+      await ctx.scheduler.runAfter(0, internal.ai.summarizeGroup, { groupId: group._id });
+    }
+
+    return active.length;
+  },
+});
+
+export const saveSummary = internalMutation({
+  args: {
+    groupId: v.id("groups"),
+    summary: v.string(),
+  },
+  handler: async (ctx, { groupId, summary }) => {
+    await ctx.db.patch(groupId, { summary });
+  },
+});
+
+export const getById = internalQuery({
+  args: { groupId: v.id("groups") },
+  handler: async (ctx, { groupId }) => {
+    return await ctx.db.get(groupId);
   },
 });

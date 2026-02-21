@@ -11,10 +11,12 @@ export function ChatPanel({
   sessionId,
   currentUserId,
   activeContext,
+  isEnded,
 }: {
   sessionId: Id<"sessions">;
   currentUserId: Id<"users"> | null;
   activeContext: ActiveContext;
+  isEnded: boolean;
 }) {
   const sessionMessages = useQuery(
     api.messages.listBySession,
@@ -28,12 +30,18 @@ export function ChatPanel({
   const messages = (activeContext.type === "main" ? sessionMessages : groupMessages) ?? [];
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       <MessageList messages={messages} currentUserId={currentUserId} />
-      <MessageInput
-        sessionId={sessionId}
-        groupId={activeContext.type === "group" ? activeContext.groupId : undefined}
-      />
+      {isEnded && activeContext.type === "group" ? (
+        <div className="flex items-center justify-center border-t px-4 py-3 text-sm text-muted-foreground">
+          This group has ended
+        </div>
+      ) : (
+        <MessageInput
+          sessionId={sessionId}
+          groupId={activeContext.type === "group" ? activeContext.groupId : undefined}
+        />
+      )}
     </div>
   );
 }

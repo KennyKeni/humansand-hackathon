@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation, internalQuery } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
 export const send = mutation({
@@ -20,6 +20,8 @@ export const send = mutation({
     if (groupId) {
       const group = await ctx.db.get(groupId);
       if (!group) throw new Error("Group not found");
+      if (group.sessionId !== sessionId) throw new Error("Group does not belong to this session");
+      if (group.endedAt) throw new Error("This group has ended");
 
       const session = await ctx.db.get(group.sessionId);
       if (!session) throw new Error("Session not found");
@@ -27,6 +29,14 @@ export const send = mutation({
       const isCreator = session.createdBy === userId;
       const isMember = group.memberIds.includes(userId);
       if (!isCreator && !isMember) throw new Error("Not authorized to send messages in this group");
+    } else {
+      const membership = await ctx.db
+        .query("sessionMembers")
+        .withIndex("by_session_user", (q) =>
+          q.eq("sessionId", sessionId).eq("userId", userId)
+        )
+        .unique();
+      if (!membership) throw new Error("Not a session member");
     }
 
     await ctx.db.insert("messages", {
@@ -75,10 +85,11 @@ export const listBySession = query({
 
     return await Promise.all(
       reversed.map(async (msg) => {
-        const user = await ctx.db.get(msg.authorId);
+        const user = msg.authorId ? await ctx.db.get(msg.authorId) : null;
         return {
           ...msg,
-          authorName: msg.isSystem ? "AI Teaching Assistant" : (user?.name ?? "Anonymous"),
+          authorName: msg.isSystem ? "AI Teaching Assistant" : msg.role === "ai" ? "AI Assistant" : (user?.name ?? "Anonymous"),
+          role: msg.role,
         };
       })
     );
@@ -111,10 +122,53 @@ export const listByGroup = query({
 
     return await Promise.all(
       reversed.map(async (msg) => {
-        const user = await ctx.db.get(msg.authorId);
+        const user = msg.authorId ? await ctx.db.get(msg.authorId) : null;
         return {
           ...msg,
-          authorName: msg.isSystem ? "AI Teaching Assistant" : (user?.name ?? "Anonymous"),
+          authorName: msg.isSystem ? "AI Teaching Assistant" : msg.role === "ai" ? "AI Assistant" : (user?.name ?? "Anonymous"),
+          role: msg.role,
+        };
+      })
+    );
+  },
+});
+
+export const postAIMessage = internalMutation({
+  args: {
+    groupId: v.id("groups"),
+    body: v.string(),
+  },
+  handler: async (ctx, { groupId, body }) => {
+    const group = await ctx.db.get(groupId);
+    if (!group) throw new Error("Group not found");
+
+    await ctx.db.insert("messages", {
+      sessionId: group.sessionId,
+      groupId,
+      body,
+      role: "ai",
+    });
+  },
+});
+
+export const getGroupMessages = internalQuery({
+  args: { groupId: v.id("groups") },
+  handler: async (ctx, { groupId }) => {
+    const messages = await ctx.db
+      .query("messages")
+      .withIndex("by_group", (q) => q.eq("groupId", groupId))
+      .collect();
+
+    return await Promise.all(
+      messages.map(async (msg) => {
+        const authorName = msg.authorId
+          ? (await ctx.db.get(msg.authorId))?.name ?? "Anonymous"
+          : "AI Assistant";
+        return {
+          body: msg.body,
+          authorName,
+          authorId: msg.authorId,
+          role: msg.role,
         };
       })
     );

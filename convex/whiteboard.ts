@@ -38,6 +38,7 @@ export const saveElements = mutation({
       const isCreator = session.createdBy === userId;
       const isMember = group.memberIds.includes(userId);
       if (!isCreator && !isMember) throw new Error("Not authorized to edit this group whiteboard");
+      if (group.endedAt) return;
     } else {
       const session = await ctx.db
         .query("sessions")
@@ -70,7 +71,41 @@ export const updateCursor = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    if (!userId) return;
+
+    if (args.roomId.startsWith("group-")) {
+      const rawId = args.roomId.slice("group-".length);
+      let group;
+      try {
+        group = await ctx.db.get(rawId as Id<"groups">);
+      } catch {
+        return;
+      }
+      if (!group) return;
+
+      const session = await ctx.db.get(group.sessionId);
+      if (!session) return;
+
+      const isCreator = session.createdBy === userId;
+      const isMember = group.memberIds.includes(userId);
+      if (!isCreator && !isMember) return;
+
+      if (group.endedAt) return;
+    } else {
+      const session = await ctx.db
+        .query("sessions")
+        .withIndex("by_code", (q) => q.eq("code", args.roomId))
+        .first();
+      if (!session) return;
+
+      const membership = await ctx.db
+        .query("sessionMembers")
+        .withIndex("by_session_user", (q) =>
+          q.eq("sessionId", session._id).eq("userId", userId)
+        )
+        .unique();
+      if (!membership) return;
+    }
 
     const existing = await ctx.db
       .query("whiteboards")
