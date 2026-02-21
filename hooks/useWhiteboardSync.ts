@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useMemo } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
@@ -9,10 +9,6 @@ import {
 } from "@excalidraw/excalidraw";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import type { ExcalidrawElement } from "@excalidraw/excalidraw/element/types";
-
-function generateUserId() {
-  return Math.random().toString(36).slice(2, 10);
-}
 
 const COLLABORATOR_COLORS = [
   { background: "#FF6B6B80", stroke: "#FF6B6B" },
@@ -34,25 +30,22 @@ function getColorForUser(userId: string) {
   return COLLABORATOR_COLORS[Math.abs(hash) % COLLABORATOR_COLORS.length];
 }
 
+const noopChange = () => {};
+const noopPointer = () => {};
+
 export function useWhiteboardSync(
   excalidrawAPI: ExcalidrawImperativeAPI | null,
   roomId: string = "default",
+  currentUserId?: string | null,
+  viewOnly: boolean = false,
 ) {
-  const userIdRef = useRef<string>("");
-  if (!userIdRef.current) {
-    userIdRef.current = generateUserId();
-  }
-
   const whiteboard = useQuery(api.whiteboard.get, { roomId });
   const saveElements = useMutation(api.whiteboard.saveElements);
   const updateCursorMutation = useMutation(api.whiteboard.updateCursor);
   const removeCursorMutation = useMutation(api.whiteboard.removeCursor);
 
-  // Track the version we last saved to prevent echo
   const lastSavedVersionRef = useRef<string>("");
-  // Track whether we're applying a remote update to prevent onChange loop
   const isApplyingRemoteRef = useRef(false);
-  // Debounce timer refs
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cursorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -60,7 +53,6 @@ export function useWhiteboardSync(
   useEffect(() => {
     if (!excalidrawAPI || !whiteboard?.elements) return;
 
-    // Skip if this is the version we just saved (echo prevention)
     if (whiteboard.elements === lastSavedVersionRef.current) return;
 
     const remoteElements = JSON.parse(whiteboard.elements) as ExcalidrawElement[];
@@ -78,7 +70,6 @@ export function useWhiteboardSync(
       elements: reconciledElements,
       captureUpdate: CaptureUpdateAction.NEVER,
     });
-    // Reset after a tick to allow the onChange callback to fire and be ignored
     requestAnimationFrame(() => {
       isApplyingRemoteRef.current = false;
     });
@@ -103,8 +94,7 @@ export function useWhiteboardSync(
     >();
 
     for (const [uid, cursor] of Object.entries(cursors)) {
-      // Don't show our own cursor
-      if (uid === userIdRef.current) continue;
+      if (currentUserId && uid === currentUserId) continue;
       collaborators.set(uid as any, {
         pointer: { x: cursor.x, y: cursor.y, tool: cursor.tool },
         username: cursor.username || `User ${uid.slice(0, 4)}`,
@@ -118,18 +108,16 @@ export function useWhiteboardSync(
     });
   }, [excalidrawAPI, whiteboard?.cursors]);
 
-  // Cleanup cursor on unmount
+  // Cleanup cursor on unmount (skip for view-only users)
   useEffect(() => {
-    const userId = userIdRef.current;
+    if (viewOnly) return;
     return () => {
-      removeCursorMutation({ roomId: roomId, userId });
+      removeCursorMutation({ roomId: roomId });
     };
-  }, [removeCursorMutation]);
+  }, [removeCursorMutation, viewOnly]);
 
-  // Debounced save handler for onChange
   const handleChange = useCallback(
     (elements: readonly ExcalidrawElement[]) => {
-      // Skip if we're applying remote update
       if (isApplyingRemoteRef.current) return;
 
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -143,7 +131,6 @@ export function useWhiteboardSync(
     [saveElements],
   );
 
-  // Debounced cursor update
   const handlePointerUpdate = useCallback(
     (payload: {
       pointer: { x: number; y: number; tool: "pointer" | "laser" };
@@ -154,7 +141,6 @@ export function useWhiteboardSync(
       cursorTimerRef.current = setTimeout(() => {
         updateCursorMutation({
           roomId: roomId,
-          userId: userIdRef.current,
           cursor: JSON.stringify({
             x: payload.pointer.x,
             y: payload.pointer.y,
@@ -166,18 +152,17 @@ export function useWhiteboardSync(
     [updateCursorMutation],
   );
 
-  // Initial data for Excalidraw
-  const initialData = useMemo(() => {
-    if (whiteboard === undefined) return undefined; // still loading
-    if (whiteboard === null) return { elements: [] }; // no whiteboard yet
-    return {
-      elements: JSON.parse(whiteboard.elements) as ExcalidrawElement[],
-    };
-  }, []); // only compute once on mount — subsequent updates come via subscription
+  const initialDataRef = useRef<{ elements: ExcalidrawElement[] } | null>(null);
+  if (whiteboard !== undefined && !initialDataRef.current) {
+    initialDataRef.current = whiteboard === null
+      ? { elements: [] }
+      : { elements: JSON.parse(whiteboard.elements) as ExcalidrawElement[] };
+  }
+  const initialData = initialDataRef.current ?? undefined;
 
   return {
-    handleChange,
-    handlePointerUpdate,
+    handleChange: viewOnly ? noopChange : handleChange,
+    handlePointerUpdate: viewOnly ? noopPointer : handlePointerUpdate,
     isLoading: whiteboard === undefined,
     initialData,
   };

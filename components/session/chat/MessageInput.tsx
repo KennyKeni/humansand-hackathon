@@ -7,7 +7,13 @@ import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export function MessageInput({ sessionId }: { sessionId: Id<"sessions"> }) {
+export function MessageInput({
+  sessionId,
+  groupId,
+}: {
+  sessionId: Id<"sessions">;
+  groupId?: Id<"groups">;
+}) {
   const [body, setBody] = useState("");
   const send = useMutation(api.messages.send);
 
@@ -16,7 +22,7 @@ export function MessageInput({ sessionId }: { sessionId: Id<"sessions"> }) {
     const trimmed = body.trim();
     if (!trimmed) return;
     try {
-      await send({ sessionId, body: trimmed });
+      await send({ sessionId, body: trimmed, groupId });
       setBody("");
     } catch {
     }

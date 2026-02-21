@@ -1,5 +1,7 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { getAuthUserId } from "@convex-dev/auth/server";
+import { Id } from "./_generated/dataModel";
 
 export const get = query({
   args: { roomId: v.string() },
@@ -17,6 +19,34 @@ export const saveElements = mutation({
     elements: v.string(),
   },
   handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    if (args.roomId.startsWith("group-")) {
+      const rawId = args.roomId.slice("group-".length);
+      let group;
+      try {
+        group = await ctx.db.get(rawId as Id<"groups">);
+      } catch {
+        throw new Error("Invalid group");
+      }
+      if (!group) throw new Error("Invalid group");
+
+      const session = await ctx.db.get(group.sessionId);
+      if (!session) throw new Error("Session not found");
+
+      const isCreator = session.createdBy === userId;
+      const isMember = group.memberIds.includes(userId);
+      if (!isCreator && !isMember) throw new Error("Not authorized to edit this group whiteboard");
+    } else {
+      const session = await ctx.db
+        .query("sessions")
+        .withIndex("by_code", (q) => q.eq("code", args.roomId))
+        .first();
+      if (!session) throw new Error("Session not found");
+      if (session.createdBy !== userId) throw new Error("Only the session creator can edit the main whiteboard");
+    }
+
     const existing = await ctx.db
       .query("whiteboards")
       .withIndex("by_roomId", (q) => q.eq("roomId", args.roomId))
@@ -36,10 +66,12 @@ export const saveElements = mutation({
 export const updateCursor = mutation({
   args: {
     roomId: v.string(),
-    userId: v.string(),
     cursor: v.string(),
   },
   handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
     const existing = await ctx.db
       .query("whiteboards")
       .withIndex("by_roomId", (q) => q.eq("roomId", args.roomId))
@@ -50,7 +82,7 @@ export const updateCursor = mutation({
     const cursors: Record<string, unknown> = existing.cursors
       ? JSON.parse(existing.cursors)
       : {};
-    cursors[args.userId] = JSON.parse(args.cursor);
+    cursors[userId] = JSON.parse(args.cursor);
 
     await ctx.db.patch(existing._id, { cursors: JSON.stringify(cursors) });
   },
@@ -59,9 +91,11 @@ export const updateCursor = mutation({
 export const removeCursor = mutation({
   args: {
     roomId: v.string(),
-    userId: v.string(),
   },
   handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
     const existing = await ctx.db
       .query("whiteboards")
       .withIndex("by_roomId", (q) => q.eq("roomId", args.roomId))
@@ -70,7 +104,7 @@ export const removeCursor = mutation({
     if (!existing || !existing.cursors) return;
 
     const cursors: Record<string, unknown> = JSON.parse(existing.cursors);
-    delete cursors[args.userId];
+    delete cursors[userId];
 
     await ctx.db.patch(existing._id, { cursors: JSON.stringify(cursors) });
   },

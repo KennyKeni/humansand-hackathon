@@ -5,11 +5,13 @@ import { X, MessageSquare } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { MemberList } from "./MemberList";
 import { ChatPanel } from "./chat/ChatPanel";
+import type { ActiveContext } from "@/app/session/[code]/page";
 
 type Member = {
   _id: Id<"sessionMembers">;
+  userId: Id<"users">;
   name: string;
-  role: "creator" | "participant";
+  role: "creator" | "participant" | "professor" | "student";
 };
 
 type Tab = "chat" | "members";
@@ -20,12 +22,16 @@ export function FloatingPanel({
   members,
   isOpen,
   onToggle,
+  activeContext,
+  role,
 }: {
   sessionId: Id<"sessions">;
   currentUserId: Id<"users"> | null;
   members: Member[];
   isOpen: boolean;
   onToggle: () => void;
+  activeContext: ActiveContext;
+  role: "creator" | "participant" | "professor" | "student";
 }) {
   const [tab, setTab] = useState<Tab>("chat");
 
@@ -60,9 +66,17 @@ export function FloatingPanel({
       </div>
       <div className="flex-1 overflow-hidden">
         {tab === "chat" ? (
-          <ChatPanel sessionId={sessionId} currentUserId={currentUserId} />
+          <ChatPanel
+            sessionId={sessionId}
+            currentUserId={currentUserId}
+            activeContext={activeContext}
+          />
         ) : (
-          <MemberList members={members} />
+          <MemberList
+            members={members}
+            role={role}
+            sessionId={sessionId}
+          />
         )}
       </div>
     </div>

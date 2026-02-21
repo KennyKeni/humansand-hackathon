@@ -2,6 +2,8 @@
 
 ## Project Overview
 
+**This is a hackathon project. Prioritize speed and working demos over polish. Cut corners where reasonable, skip unnecessary abstractions, and focus on getting features functional end-to-end.**
+
 AI-powered collaborative learning platform where a professor teaches on a shared whiteboard, and an AI agent monitors comprehension, dynamically pairs students into complementary study groups, and facilitates peer learning — all in real time.
 
 ## Tech Stack
