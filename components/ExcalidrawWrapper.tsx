@@ -50,7 +50,7 @@ export default function ExcalidrawWrapper({
         initialData={{
           ...initialData,
           appState: {
-            ...initialData?.appState,
+            ...(initialData as Record<string, unknown>)?.appState as Record<string, unknown>,
             viewBackgroundColor: "#F5F0E8",
           },
         }}

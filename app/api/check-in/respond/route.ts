@@ -43,7 +43,7 @@ RULES:
 
 ${exchangeCount >= 5 ? "Wrap up in one casual sentence -- something like 'Cool, I've got a good read on where you're at -- we'll get you matched up with a study group soon.'" : "Keep probing their understanding of different lesson topics."}`,
       messages: conversationHistory,
-      maxTokens: 150,
+      maxOutputTokens: 150,
     });
 
     // Save AI response

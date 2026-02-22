@@ -71,7 +71,7 @@ Student name: ${student.name}
 Write a 2-sentence opening. First sentence: greet them by name and mention one topic from the lesson. Second sentence: ask what made sense and what didn't. Sound like a chill teacher, not a corporate chatbot. No bullet points, no lists, no fluff.`,
             },
           ],
-          maxTokens: 150,
+          maxOutputTokens: 150,
         });
 
         const checkInId = await convex.mutation(api.checkIns.startCheckIn, {
