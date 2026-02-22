@@ -32,10 +32,10 @@ export default function ExcalidrawWrapper({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#fff",
+          backgroundColor: "#F5F0E8",
         }}
       >
-        <p style={{ fontSize: 18, color: "#888" }}>Loading whiteboard...</p>
+        <p style={{ fontSize: 18, color: "#636363" }}>Loading whiteboard...</p>
       </div>
     );
   }
@@ -47,7 +47,13 @@ export default function ExcalidrawWrapper({
           setExcalidrawAPI(api);
           onAPIReady?.(api);
         }}
-        initialData={initialData}
+        initialData={{
+          ...initialData,
+          appState: {
+            ...initialData?.appState,
+            viewBackgroundColor: "#F5F0E8",
+          },
+        }}
         isCollaborating={true}
         viewModeEnabled={viewOnly}
         {...(!viewOnly && {

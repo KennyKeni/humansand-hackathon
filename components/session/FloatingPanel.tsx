@@ -67,23 +67,23 @@ export function FloatingPanel({
     return (
       <button
         onClick={onToggle}
-        className="absolute right-0 top-16 z-30 rounded-l-md bg-background border border-r-0 shadow-md p-2 hover:bg-muted/50"
+        className="absolute right-0 top-16 z-30 rounded-l-md bg-cream/95 border border-r-0 border-parchment shadow-md p-2 hover:bg-cream-deep backdrop-blur-sm"
       >
-        <MessageSquare className="h-5 w-5" />
+        <MessageSquare className="h-5 w-5 text-charcoal-soft" />
       </button>
     );
   }
 
   return (
     <div
-      className="flex h-full flex-col overflow-hidden border-l bg-background"
+      className="flex h-full flex-col overflow-hidden border-l border-parchment bg-cream shadow-lg"
       style={
         expanded
           ? { flex: "1 1 100%", width: "100%" }
           : { flex: "0 0 33.333%", minWidth: 340, maxWidth: 480 }
       }
     >
-      <div className="flex items-center justify-between border-b px-3 py-2 shrink-0">
+      <div className="flex items-center justify-between border-b border-parchment px-3 py-2 shrink-0">
         <div className="flex gap-1">
           <TabButton active={tab === "chat"} onClick={() => setTab("chat")}>
             Chat
@@ -100,7 +100,7 @@ export function FloatingPanel({
         <div className="flex items-center gap-0.5">
           <button
             onClick={() => setExpanded((v) => !v)}
-            className="rounded p-1 text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            className="rounded p-1 text-charcoal-soft hover:bg-cream-deep hover:text-foreground"
             title={expanded ? "Exit fullscreen" : "Fullscreen"}
           >
             {expanded ? (
@@ -111,7 +111,7 @@ export function FloatingPanel({
           </button>
           <button
             onClick={onToggle}
-            className="rounded p-1 text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            className="rounded p-1 text-charcoal-soft hover:bg-cream-deep hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>
@@ -166,10 +166,10 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`relative rounded-md px-3 py-1 text-[13px] font-medium transition-colors ${
+      className={`relative px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.05em] transition-colors ${
         active
-          ? "bg-foreground/[0.06] text-foreground"
-          : "text-muted-foreground hover:text-foreground hover:bg-foreground/[0.03]"
+          ? "text-terracotta border-b-2 border-terracotta"
+          : "text-charcoal-soft hover:text-foreground"
       }`}
     >
       {children}

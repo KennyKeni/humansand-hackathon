@@ -34,9 +34,9 @@ export function CreateSession() {
   }
 
   return (
-    <Card>
+    <Card className="border-t-[3px] border-t-terracotta">
       <CardHeader>
-        <CardTitle>Create Session</CardTitle>
+        <CardTitle className="font-display">Create Session</CardTitle>
         <CardDescription>Start a new teaching session</CardDescription>
       </CardHeader>
       <CardContent>

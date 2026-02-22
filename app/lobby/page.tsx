@@ -16,14 +16,14 @@ export default function LobbyPage() {
     <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="w-full max-w-2xl space-y-6 px-4">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">
+          <h1 className="font-display text-3xl font-semibold">
             Welcome{me?.name ? `, ${me.name}` : ""}
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-charcoal-soft mt-1">
             Create a session or join one with a code
           </p>
           <button
-            className="text-sm text-muted-foreground underline mt-2"
+            className="text-sm text-charcoal-soft no-underline mt-2 hover:text-terracotta transition-colors"
             onClick={() => signOut().then(() => router.push("/"))}
           >
             Sign out

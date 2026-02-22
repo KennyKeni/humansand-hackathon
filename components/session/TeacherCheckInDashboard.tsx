@@ -34,12 +34,12 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center justify-between mb-2.5">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-charcoal-soft font-display">
         <Icon className="h-3.5 w-3.5" />
         {title}
       </div>
       {detail && (
-        <span className="text-xs tabular-nums text-muted-foreground">
+        <span className="text-xs tabular-nums text-charcoal-soft">
           {detail}
         </span>
       )}
@@ -50,7 +50,7 @@ function SectionHeader({
 function ProgressBar({ completed, total }: { completed: number; total: number }) {
   const pct = total > 0 ? (completed / total) * 100 : 0;
   return (
-    <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden mb-3">
+    <div className="h-1.5 w-full rounded-full bg-parchment overflow-hidden mb-3">
       <div
         className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
         style={{ width: `${pct}%` }}
@@ -63,11 +63,11 @@ function StatusDot({ status }: { status: "none" | "active" | "completed" }) {
   return (
     <span className="flex h-5 w-5 shrink-0 items-center justify-center">
       {status === "completed" ? (
-        <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+        <CheckCircle2 className="h-3.5 w-3.5 text-sage" />
       ) : status === "active" ? (
-        <Clock className="h-3.5 w-3.5 text-amber-500 animate-pulse" />
+        <Clock className="h-3.5 w-3.5 text-terracotta animate-pulse" />
       ) : (
-        <CircleDashed className="h-3.5 w-3.5 text-muted-foreground/40" />
+        <CircleDashed className="h-3.5 w-3.5 text-charcoal-muted" />
       )}
     </span>
   );
@@ -76,9 +76,9 @@ function StatusDot({ status }: { status: "none" | "active" | "completed" }) {
 function StatusLabel({ status }: { status: "none" | "active" | "completed" }) {
   const labels = { none: "Waiting", active: "Chatting", completed: "Done" };
   const colors = {
-    none: "text-muted-foreground/60",
-    active: "text-amber-600",
-    completed: "text-green-600",
+    none: "text-charcoal-muted",
+    active: "text-terracotta",
+    completed: "text-sage",
   };
   return (
     <span className={`text-[11px] font-medium ${colors[status]}`}>
@@ -191,7 +191,7 @@ export function TeacherCheckInDashboard({
               return (
                 <div
                   key={student.userId}
-                  className="flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-muted/40"
+                  className="flex items-center gap-2.5 rounded-md px-3 py-2 transition-colors hover:bg-cream-deep"
                 >
                   <StatusDot status={status} />
                   <span className="flex-1 truncate text-sm">{student.name}</span>
@@ -210,7 +210,7 @@ export function TeacherCheckInDashboard({
               {comprehensionProfiles.map((profile) => (
                 <div
                   key={profile._id}
-                  className="rounded-lg bg-muted/30 p-3 space-y-2"
+                  className="rounded-md bg-cream-deep p-3 space-y-2"
                 >
                   <div className="text-sm font-medium truncate">
                     {memberNameMap.get(profile.userId) ?? "Unknown"}
@@ -221,15 +221,15 @@ export function TeacherCheckInDashboard({
                         key={i}
                         className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium truncate max-w-full ${
                           topic.understood
-                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                            : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                            ? "bg-sage-subtle text-sage"
+                            : "bg-terracotta-subtle text-terracotta"
                         }`}
                       >
                         {topic.name}
                       </span>
                     ))}
                   </div>
-                  <p className="text-xs leading-relaxed text-muted-foreground break-words">
+                  <p className="text-xs leading-relaxed text-charcoal-soft break-words">
                     {profile.overallSummary}
                   </p>
                 </div>
@@ -274,26 +274,26 @@ export function TeacherCheckInDashboard({
               {proposedMatches.groups.map((group, i) => (
                 <div
                   key={i}
-                  className="rounded-lg bg-muted/30 p-3 space-y-2"
+                  className="rounded-md bg-cream-deep p-3 space-y-2"
                 >
                   <div className="text-sm font-medium truncate">{group.name}</div>
                   <div className="flex flex-wrap gap-1.5">
                     {group.memberIds.map((id) => (
                       <span
                         key={id}
-                        className="inline-flex items-center rounded-md bg-background border px-2 py-0.5 text-[11px] font-medium truncate max-w-full"
+                        className="inline-flex items-center rounded-md bg-cream border border-parchment px-2 py-0.5 text-[11px] font-medium truncate max-w-full"
                       >
                         {memberNameMap.get(id as Id<"users">) ?? id}
                       </span>
                     ))}
                   </div>
-                  <p className="text-xs leading-relaxed text-muted-foreground break-words">
+                  <p className="text-xs leading-relaxed text-charcoal-soft break-words">
                     {group.reason}
                   </p>
                 </div>
               ))}
               {proposedMatches.unmatchedIds.length > 0 && (
-                <p className="text-xs text-muted-foreground px-1">
+                <p className="text-xs text-charcoal-soft px-1">
                   {proposedMatches.unmatchedIds.length} student(s) didn&apos;t respond
                   and will be distributed into groups.
                 </p>
@@ -321,7 +321,7 @@ export function TeacherCheckInDashboard({
             )}
 
             {(checkInPhase === "grouped" || roomsSent) && (
-              <div className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-green-50 dark:bg-green-900/20 py-3 text-sm font-medium text-green-700 dark:text-green-400">
+              <div className="mt-3 flex items-center justify-center gap-2 rounded-md bg-sage-subtle py-3 text-sm font-medium text-sage">
                 <CheckCircle2 className="h-4 w-4" />
                 Discussion rooms are active
               </div>

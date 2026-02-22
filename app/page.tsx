@@ -44,7 +44,7 @@ function LandingContent() {
   if (isLoading || isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-charcoal-soft">Loading...</p>
       </div>
     );
   }
@@ -63,13 +63,17 @@ function LandingContent() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-sm animate-landing-enter">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">StudySync</CardTitle>
-          <CardDescription>Enter your name to get started</CardDescription>
+          <CardTitle className="font-display text-3xl" style={{ animationDelay: "75ms" }}>
+            StudySync
+          </CardTitle>
+          <CardDescription className="animate-landing-enter" style={{ animationDelay: "150ms" }}>
+            Enter your name to get started
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4 animate-landing-enter" style={{ animationDelay: "225ms" }}>
             <Input
               placeholder="Your name"
               value={name}
@@ -93,7 +97,7 @@ export default function Home() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center">
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-charcoal-soft">Loading...</p>
         </div>
       }
     >

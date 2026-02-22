@@ -29,7 +29,7 @@ export function MessageInput({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 border-t px-4 py-3">
+    <form onSubmit={handleSubmit} className="flex gap-2 border-t border-parchment bg-cream-deep/30 px-4 py-3">
       <Input
         placeholder="Type a message..."
         value={body}

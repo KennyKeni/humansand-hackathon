@@ -29,7 +29,7 @@ export function MessageList({
 
   if (messages.length === 0) {
     return (
-      <div className="flex flex-1 items-center justify-center text-muted-foreground text-sm">
+      <div className="flex flex-1 items-center justify-center text-charcoal-soft text-sm">
         No messages yet. Start the conversation!
       </div>
     );
@@ -42,17 +42,19 @@ export function MessageList({
           const isAI = msg.role === "ai";
           const isOwn = !!msg.authorId && msg.authorId === currentUserId;
           return (
-            <div key={msg._id} className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}>
-              <span className="text-xs text-muted-foreground mb-0.5">
-                {msg.authorName}
-              </span>
+            <div key={msg._id} className={`flex flex-col ${isOwn ? "items-end" : "items-start"} animate-message-enter`}>
+              {!isOwn && (
+                <span className="text-xs text-charcoal-soft font-semibold mb-0.5">
+                  {msg.authorName}
+                </span>
+              )}
               <div
-                className={`rounded-lg px-3 py-2 text-sm max-w-[80%] ${
+                className={`px-3 py-2 text-sm max-w-[80%] ${
                   isAI
-                    ? "bg-accent border border-border"
+                    ? "bg-chat-ai text-charcoal rounded-[10px] rounded-bl-[6px] border-l-[3px] border-slate-blue"
                     : isOwn
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
+                      ? "bg-chat-own text-charcoal rounded-[10px] rounded-br-[6px]"
+                      : "bg-chat-other text-charcoal rounded-[10px] rounded-bl-[6px]"
                 }`}
               >
                 <Streamdown>{msg.body}</Streamdown>

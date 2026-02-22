@@ -73,7 +73,7 @@ export function MemberList({
   return (
     <div className="flex-1 min-h-0 overflow-y-auto space-y-2 p-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-muted-foreground">Members</h2>
+        <h2 className="text-sm font-medium text-charcoal-soft">Members</h2>
         {role === "creator" && !selecting && (
           <Button variant="outline" size="sm" onClick={startSelecting}>
             Create Group
@@ -82,13 +82,13 @@ export function MemberList({
       </div>
 
       {selecting && (
-        <div className="space-y-2 rounded border p-3">
+        <div className="space-y-2 rounded-md border border-parchment p-3">
           <Input
             placeholder="Group name"
             value={groupName}
             onChange={(e) => setGroupName(e.target.value)}
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-charcoal-soft">
             Select at least 2 students
           </p>
         </div>
@@ -100,18 +100,18 @@ export function MemberList({
           const isSelected = selectedIds.has(m.userId);
 
           return (
-            <li key={m._id} className="flex items-center gap-2 text-sm">
+            <li key={m._id} className="flex items-center gap-2 text-sm rounded-md px-2 py-1.5 hover:bg-cream-deep transition-colors">
               {selecting && isParticipant && (
                 <input
                   type="checkbox"
                   checked={isSelected}
                   onChange={() => toggleMember(m.userId)}
-                  className="h-4 w-4 rounded border-gray-300"
+                  className="h-4 w-4 rounded border-parchment accent-terracotta"
                 />
               )}
-              <span>{m.name}</span>
-              <Badge variant={m.role === "creator" ? "default" : "secondary"}>
-                {m.role}
+              <span className="flex-1">{m.name}</span>
+              <Badge variant={m.role === "creator" ? "professor" : "student"}>
+                {m.role === "creator" ? "professor" : m.role}
               </Badge>
             </li>
           );

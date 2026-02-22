@@ -11,22 +11,22 @@ import { Bot, Loader2, Send, CheckCheck } from "lucide-react";
 function MessageBubble({ msg }: { msg: { _id: string; role: string; body: string } }) {
   const isAI = msg.role === "assistant";
   return (
-    <div className={`flex ${isAI ? "justify-start" : "justify-end"}`}>
+    <div className={`flex ${isAI ? "justify-start" : "justify-end"} animate-message-enter`}>
       <div className={`max-w-[85%] ${isAI ? "flex gap-2" : ""}`}>
         {isAI && (
-          <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
-            <Bot className="h-3.5 w-3.5 text-primary" />
+          <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-blue-subtle">
+            <Bot className="h-3.5 w-3.5 text-slate-blue" />
           </div>
         )}
         <div>
-          <span className={`mb-1 block text-[11px] font-medium tracking-wide uppercase text-muted-foreground ${isAI ? "" : "text-right"}`}>
-            {isAI ? "Assistant" : "You"}
+          <span className={`mb-1 block text-[11px] font-medium tracking-wide uppercase ${isAI ? "text-slate-blue" : "text-charcoal-soft text-right"}`}>
+            {isAI ? "AI Assistant" : "You"}
           </span>
           <div
-            className={`rounded-xl px-3.5 py-2.5 text-[13px] leading-relaxed break-words ${
+            className={`rounded-[10px] px-3.5 py-2.5 text-[13px] leading-relaxed break-words ${
               isAI
-                ? "rounded-tl-sm bg-muted/70"
-                : "rounded-tr-sm bg-primary text-primary-foreground"
+                ? "rounded-tl-[6px] bg-chat-ai border-l-[3px] border-slate-blue text-charcoal"
+                : "rounded-tr-[6px] bg-chat-own text-charcoal"
             }`}
           >
             {msg.body}
@@ -117,9 +117,9 @@ export function CheckInChat({
             <div ref={bottomRef} />
           </div>
         </div>
-        <div className="border-t bg-muted/30 px-4 py-4 text-center shrink-0">
-          <div className="flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground">
-            <CheckCheck className="h-4 w-4 text-green-600" />
+        <div className="border-t border-parchment bg-cream-deep/50 px-4 py-4 text-center shrink-0">
+          <div className="flex items-center justify-center gap-2 text-sm font-medium text-charcoal-soft">
+            <CheckCheck className="h-4 w-4 text-sage" />
             Check-in complete! Your teacher will group you soon.
           </div>
         </div>
@@ -137,18 +137,18 @@ export function CheckInChat({
           {sending && (
             <div className="flex justify-start">
               <div className="flex gap-2">
-                <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                  <Bot className="h-3.5 w-3.5 text-primary" />
+                <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-blue-subtle">
+                  <Bot className="h-3.5 w-3.5 text-slate-blue" />
                 </div>
                 <div>
-                  <span className="mb-1 block text-[11px] font-medium tracking-wide uppercase text-muted-foreground">
-                    Assistant
+                  <span className="mb-1 block text-[11px] font-medium tracking-wide uppercase text-slate-blue">
+                    AI Assistant
                   </span>
-                  <div className="rounded-xl rounded-tl-sm bg-muted/70 px-4 py-3">
+                  <div className="rounded-[10px] rounded-tl-[6px] bg-chat-ai px-4 py-3">
                     <div className="flex gap-1">
-                      <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "300ms" }} />
+                      <span className="h-2 w-2 rounded-full bg-slate-blue/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="h-2 w-2 rounded-full bg-slate-blue/40 animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="h-2 w-2 rounded-full bg-slate-blue/40 animate-bounce" style={{ animationDelay: "300ms" }} />
                     </div>
                   </div>
                 </div>
@@ -158,7 +158,7 @@ export function CheckInChat({
           <div ref={bottomRef} />
         </div>
       </div>
-      <div className="border-t bg-muted/20 px-3 py-3 space-y-2 shrink-0">
+      <div className="border-t border-parchment bg-cream-deep/30 px-3 py-3 space-y-2 shrink-0">
         <form onSubmit={handleSend} className="flex gap-2 items-center">
           <Input
             placeholder="Share what you learned..."
@@ -181,7 +181,7 @@ export function CheckInChat({
         <Button
           variant="ghost"
           size="sm"
-          className="w-full text-muted-foreground hover:text-foreground"
+          className="w-full text-charcoal-soft hover:text-foreground"
           onClick={handleComplete}
           disabled={completing}
         >

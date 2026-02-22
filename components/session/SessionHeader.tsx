@@ -96,13 +96,13 @@ export function SessionHeader({
 
   return (
     <div>
-      <div className="flex items-center justify-between border-b px-4 py-3">
+      <div className="flex items-center justify-between border-b border-parchment bg-cream px-4 py-3">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => router.push("/lobby")}>
             Back
           </Button>
-          <h1 className="text-lg font-semibold">{session.title}</h1>
-          <Badge variant="secondary">{memberCount} members</Badge>
+          <h1 className="font-display text-lg font-semibold">{session.title}</h1>
+          <Badge variant="count">{memberCount} members</Badge>
         </div>
         <div className="flex items-center gap-2">
           {isCreator && teachingCapture && sessionCode && (
@@ -178,10 +178,10 @@ export function SessionHeader({
             </Badge>
           )}
           {isCreator && checkInPhase === "matched" && (
-            <Badge variant="secondary">Matches Ready</Badge>
+            <Badge variant="status">Matches Ready</Badge>
           )}
           {isCreator && checkInPhase === "grouped" && (
-            <Badge variant="secondary">Discussion Rooms Active</Badge>
+            <Badge variant="status">Discussion Rooms Active</Badge>
           )}
           {isCreator && showTranscriptionToggle && (
             <Button
@@ -215,23 +215,23 @@ export function SessionHeader({
               )}
             </>
           )}
-          <Button variant="outline" size="sm" onClick={copyCode}>
+          <Button variant="outline" size="sm" onClick={copyCode} className="font-mono tracking-widest uppercase">
             {copied ? "Copied!" : session.code}
           </Button>
         </div>
       </div>
       {hasSummary && summaryOpen && (
-        <div className="border-b bg-muted/30 px-6 py-4 max-h-64 overflow-y-auto">
-          <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">
+        <div className="border-b border-parchment bg-cream-deep/30 px-6 py-4 max-h-64 overflow-y-auto">
+          <div className="prose prose-sm max-w-none whitespace-pre-wrap">
             {summaryText}
           </div>
         </div>
       )}
       {transcriptionOpen && (
-        <div className="border-b bg-muted/20 px-6 py-4 max-h-72 overflow-y-auto">
+        <div className="border-b border-parchment bg-cream-deep/20 px-6 py-4 max-h-72 overflow-y-auto">
           <div className="space-y-3">
             {!hasSnapshots && (
-              <p className="text-sm text-muted-foreground italic">
+              <p className="text-sm text-charcoal-soft italic">
                 Waiting for first capture...
               </p>
             )}
@@ -241,13 +241,13 @@ export function SessionHeader({
                 .map((snap, i) => (
                   <div
                     key={snap._id}
-                    className="rounded-md border bg-background p-3"
+                    className="rounded-md border border-parchment bg-cream p-3"
                   >
                     <div className="mb-1 flex items-center gap-2">
                       <Badge variant="outline" className="text-xs font-mono">
                         #{liveSnapshots.length - i}
                       </Badge>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-charcoal-soft">
                         {new Date(snap.capturedAt).toLocaleTimeString()}
                       </span>
                     </div>

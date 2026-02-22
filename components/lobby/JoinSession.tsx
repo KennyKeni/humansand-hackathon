@@ -37,9 +37,9 @@ export function JoinSession() {
   }
 
   return (
-    <Card>
+    <Card className="border-t-[3px] border-t-sage">
       <CardHeader>
-        <CardTitle>Join Session</CardTitle>
+        <CardTitle className="font-display">Join Session</CardTitle>
         <CardDescription>Enter a session code to join</CardDescription>
       </CardHeader>
       <CardContent>
@@ -52,6 +52,7 @@ export function JoinSession() {
               setError(null);
             }}
             maxLength={6}
+            className="font-mono tracking-widest uppercase"
           />
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button

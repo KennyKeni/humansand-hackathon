@@ -24,6 +24,24 @@ export type ActiveContext =
   | { type: "main" }
   | { type: "group"; groupId: Id<"groups">; name: string };
 
+const GROUP_COLORS = [
+  "border-group-1",
+  "border-group-2",
+  "border-group-3",
+  "border-group-4",
+  "border-group-5",
+  "border-group-6",
+];
+
+const GROUP_TEXT_COLORS = [
+  "text-group-1",
+  "text-group-2",
+  "text-group-3",
+  "text-group-4",
+  "text-group-5",
+  "text-group-6",
+];
+
 export default function SessionPage() {
   const { code } = useParams<{ code: string }>();
   const [joinError, setJoinError] = useState<string | null>(null);
@@ -128,7 +146,7 @@ export default function SessionPage() {
         <div className="text-center space-y-4">
           <p className="text-destructive">{joinError}</p>
           <button
-            className="text-sm underline"
+            className="text-sm text-charcoal-soft hover:text-terracotta"
             onClick={() => {
               setJoinError(null);
               hasJoined.current = false;
@@ -144,7 +162,7 @@ export default function SessionPage() {
   if (session === undefined) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-charcoal-soft">Loading...</p>
       </div>
     );
   }
@@ -152,7 +170,7 @@ export default function SessionPage() {
   if (session === null) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-muted-foreground">Session not found</p>
+        <p className="text-charcoal-soft">Session not found</p>
       </div>
     );
   }
@@ -160,7 +178,7 @@ export default function SessionPage() {
   if (!membership) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-muted-foreground">Joining session...</p>
+        <p className="text-charcoal-soft">Joining session...</p>
       </div>
     );
   }
@@ -229,13 +247,13 @@ export default function SessionPage() {
           />
 
           {isViewOnly && (
-            <div className="absolute left-3 top-3 z-20 flex items-center gap-1.5 rounded bg-background/80 px-2.5 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
+            <div className="absolute left-3 top-3 z-20 flex items-center gap-1.5 rounded-md bg-parchment/80 px-2.5 py-1.5 text-xs text-charcoal-soft shadow-sm backdrop-blur-sm">
               <Lock className="h-3 w-3" />
               View Only
             </div>
           )}
           {activeContext.type === "group" && (
-            <div className="absolute left-3 top-14 z-20 rounded bg-background/80 px-2.5 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
+            <div className="absolute left-3 top-14 z-20 rounded-md bg-parchment/80 px-2.5 py-1.5 text-xs text-charcoal-soft shadow-sm backdrop-blur-sm">
               {activeContext.name}
             </div>
           )}
