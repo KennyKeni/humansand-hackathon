@@ -197,24 +197,6 @@ export function SessionHeader({
               )}
             </Button>
           )}
-          {isCreator && simulation && (
-            <>
-              {simulation.status === "idle" && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => simulation.start()}
-                >
-                  Simulate Teaching
-                </Button>
-              )}
-              {simulation.status === "running" && (
-                <Badge variant="outline" className="animate-pulse">
-                  Drawing... ({simulation.step}/{simulation.totalSteps})
-                </Badge>
-              )}
-            </>
-          )}
           <Button variant="outline" size="sm" onClick={copyCode} className="font-mono tracking-widest uppercase">
             {copied ? "Copied!" : session.code}
           </Button>

@@ -52,7 +52,7 @@ export function JoinSession() {
               setError(null);
             }}
             maxLength={6}
-            className="font-mono tracking-widest"
+            className=""
           />
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button
