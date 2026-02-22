@@ -111,7 +111,7 @@ export function MemberList({
               )}
               <span className="flex-1">{m.name}</span>
               <Badge variant={m.role === "creator" ? "professor" : "student"}>
-                {m.role === "creator" ? "professor" : m.role}
+                {m.role === "creator" ? "Teacher" : m.role}
               </Badge>
             </li>
           );
