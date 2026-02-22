@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
 
         // Build member names list
         const memberNames = group.memberIds
-          .map((id) => nameMap.get(id as string) ?? "Unknown")
+          .map((id) => nameMap.get(id) ?? "Unknown")
           .join(", ");
 
         // Send an opening message from the teacher explaining the group

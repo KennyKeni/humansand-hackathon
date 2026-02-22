@@ -71,9 +71,11 @@ export function useTeachingCapture(
   const startCaptureMutation = useMutation(api.teaching.startCapture);
 
   // Live subscription to the current session for snapshotCount
+  const [activeSessionCode, setActiveSessionCode] = useState<string | null>(null);
+
   const captureSession = useQuery(
     api.teaching.getCaptureSession,
-    sessionCodeRef.current ? { sessionCode: sessionCodeRef.current } : "skip",
+    activeSessionCode ? { sessionCode: activeSessionCode } : "skip",
   );
 
   const captureOnce = useCallback(async () => {
@@ -135,6 +137,7 @@ export function useTeachingCapture(
       }
 
       sessionCodeRef.current = sessionCode;
+      setActiveSessionCode(sessionCode);
       lastHashRef.current = 0;
       setSummary(null);
       setStatus("capturing");
@@ -188,6 +191,7 @@ export function useTeachingCapture(
       intervalRef.current = null;
     }
     sessionCodeRef.current = null;
+    setActiveSessionCode(null);
     lastHashRef.current = 0;
     isCapturingRef.current = false;
     setStatus("idle");

@@ -91,7 +91,7 @@ Respond with ONLY valid JSON in this exact format:
 IMPORTANT: Use the exact studentId values from the profiles as memberIds.`,
         },
       ],
-      maxTokens: 2000,
+      maxOutputTokens: 2000,
     });
 
     let matchResult;

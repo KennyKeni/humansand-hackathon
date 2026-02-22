@@ -52,7 +52,7 @@ Be thorough — capture everything. Do NOT summarize or interpret. Transcribe.`,
           ],
         },
       ],
-      maxTokens: 800,
+      maxOutputTokens: 800,
     });
 
     await convex.mutation(api.teaching.addSnapshot, {
@@ -63,9 +63,9 @@ Be thorough — capture everything. Do NOT summarize or interpret. Transcribe.`,
     });
 
     return NextResponse.json({ description });
-  } catch (error: any) {
-    const detail = error?.message ?? String(error);
-    let errorInfo: any = {};
+  } catch (error: unknown) {
+    const detail = error instanceof Error ? error.message : String(error);
+    let errorInfo: Record<string, unknown> = {};
     try { errorInfo = JSON.parse(JSON.stringify(error)); } catch {}
     console.error("Analyze snapshot error full:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
     return NextResponse.json(

@@ -41,6 +41,8 @@ const schema = defineSchema({
     createdBy: v.id("users"),
     endedAt: v.optional(v.number()),
     summary: v.optional(v.string()),
+    diagram: v.optional(v.string()),
+    diagramUpdatedAt: v.optional(v.number()),
   }).index("by_session", ["sessionId"]),
 
   whiteboards: defineTable({

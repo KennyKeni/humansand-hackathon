@@ -65,7 +65,7 @@ Based on these snapshots, write a structured lesson summary that:
 Write the summary in clear, educational prose. Use markdown formatting with headers. Keep it concise but comprehensive — aim for 200-400 words.`,
         },
       ],
-      maxTokens: 800,
+      maxOutputTokens: 800,
     });
 
     await convex.mutation(api.teaching.completeCapture, {

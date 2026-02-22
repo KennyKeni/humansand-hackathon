@@ -43,7 +43,7 @@ RULES:
 
 ${exchangeCount >= 5 ? "You now have enough information about this student's comprehension. Wrap up warmly with something like: 'Thanks so much! I think I have a good picture of where you're at. Your teacher will get you into a study group soon!'" : "Keep exploring their understanding of the lesson topics."}`,
       messages: conversationHistory,
-      maxTokens: 250,
+      maxOutputTokens: 250,
     });
 
     // Save AI response

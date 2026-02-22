@@ -77,7 +77,7 @@ Write a brief, friendly opening message (2-4 sentences) that:
 Keep it conversational, not formal. Do not use bullet points or lists.`,
             },
           ],
-          maxTokens: 300,
+          maxOutputTokens: 300,
         });
 
         const checkInId = await convex.mutation(api.checkIns.startCheckIn, {

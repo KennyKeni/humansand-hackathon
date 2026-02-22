@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { X, MessageSquare, GripVertical } from "lucide-react";
+import { useState, useRef, useCallback } from "react";
+import { X, MessageSquare } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { MemberList } from "./MemberList";
 import { ChatPanel } from "./chat/ChatPanel";
@@ -50,14 +50,23 @@ export function FloatingPanel({
 }) {
   const isCreator = role === "creator" || role === "professor";
   const hasCheckInTab =
-    (isCreator && checkInPhase) ||
-    (!isCreator && checkIn);
+    (isCreator && !!checkInPhase) ||
+    (!isCreator && !!checkIn);
 
-  const [tab, setTab] = useState<Tab>("chat");
+  const [tab, setTab] = useState<Tab>(hasCheckInTab ? "check-in" : "chat");
+  const [prevHadCheckIn, setPrevHadCheckIn] = useState(hasCheckInTab);
   const [width, setWidth] = useState(320);
   const isDragging = useRef(false);
   const startX = useRef(0);
   const startWidth = useRef(0);
+
+  if (hasCheckInTab && !prevHadCheckIn && tab === "chat") {
+    setPrevHadCheckIn(true);
+    setTab("check-in");
+  }
+  if (!hasCheckInTab && prevHadCheckIn) {
+    setPrevHadCheckIn(false);
+  }
 
   const onDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -81,13 +90,6 @@ export function FloatingPanel({
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseup", onMouseUp);
   }, [width]);
-
-  // Auto-switch to check-in tab when check-in becomes available
-  useEffect(() => {
-    if (hasCheckInTab && tab === "chat") {
-      setTab("check-in");
-    }
-  }, [hasCheckInTab]);
 
   if (!isOpen) {
     return (

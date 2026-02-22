@@ -170,3 +170,29 @@ export const getById = internalQuery({
     return await ctx.db.get(groupId);
   },
 });
+
+export const triggerDiagram = mutation({
+  args: { groupId: v.id("groups") },
+  handler: async (ctx, { groupId }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+    const group = await ctx.db.get(groupId);
+    if (!group || group.endedAt) return;
+    await ctx.scheduler.runAfter(0, internal.ai.updateDiagram, { groupId });
+  },
+});
+
+export const saveDiagramIfFresh = internalMutation({
+  args: {
+    groupId: v.id("groups"),
+    diagram: v.string(),
+    expectedUpdatedAt: v.optional(v.number()),
+  },
+  handler: async (ctx, { groupId, diagram, expectedUpdatedAt }) => {
+    const group = await ctx.db.get(groupId);
+    if (!group) return false;
+    if (group.diagramUpdatedAt !== expectedUpdatedAt) return false;
+    await ctx.db.patch(groupId, { diagram, diagramUpdatedAt: Date.now() });
+    return true;
+  },
+});

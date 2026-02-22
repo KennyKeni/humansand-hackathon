@@ -218,7 +218,7 @@ export function TeacherCheckInDashboard({
               ))}
               {proposedMatches.unmatchedIds.length > 0 && (
                 <div className="text-xs text-muted-foreground">
-                  {proposedMatches.unmatchedIds.length} student(s) didn't respond
+                  {proposedMatches.unmatchedIds.length} student(s) didn&apos;t respond
                   and will be distributed into groups.
                 </div>
               )}

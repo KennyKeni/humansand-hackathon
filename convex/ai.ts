@@ -1,5 +1,6 @@
 "use node";
 
+import crypto from "crypto";
 import { v } from "convex/values";
 import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
@@ -43,6 +44,245 @@ function formatSummaryForChat(summary: GroupSummary): string {
   return text;
 }
 
+const diagramSchema = z.object({
+  unchanged: z.boolean().describe("Set to true if the current diagram is still relevant and no changes needed"),
+  title: z.optional(z.string()).describe("Short title for the diagram. Omit if unchanged."),
+  nodes: z.optional(z.array(z.object({
+    id: z.string(),
+    label: z.string(),
+    shape: z.enum(["rectangle", "ellipse"]),
+  }))).describe("Up to 6 nodes. Omit if unchanged."),
+  edges: z.optional(z.array(z.object({
+    from: z.string().describe("Node ID"),
+    to: z.string().describe("Node ID"),
+  }))).describe("Up to 8 edges. Omit if unchanged."),
+});
+
+function convertDSLToExcalidraw(dsl: { title?: string; nodes?: { id: string; label: string; shape: string }[]; edges?: { from: string; to: string }[] }): string {
+  const elements: Record<string, unknown>[] = [];
+  const now = Date.now();
+  const nodeWidth = 160;
+  const nodeHeight = 70;
+  const colSpacing = 220;
+  const rowSpacing = 140;
+  const maxPerRow = 3;
+  const startX = 40;
+  const startY = 80;
+
+  function makeBase(type: string, x: number, y: number, w: number, h: number) {
+    return {
+      id: crypto.randomUUID(),
+      type,
+      x,
+      y,
+      width: w,
+      height: h,
+      angle: 0,
+      strokeColor: "#6366f1",
+      backgroundColor: "#e0e7ff",
+      fillStyle: "solid",
+      strokeWidth: 1,
+      strokeStyle: "solid",
+      roughness: 0,
+      opacity: 100,
+      groupIds: [],
+      frameId: null,
+      index: "a0",
+      roundness: null,
+      seed: Math.floor(Math.random() * 2_000_000_000),
+      version: 1,
+      versionNonce: Math.floor(Math.random() * 2_000_000_000),
+      isDeleted: false,
+      boundElements: null,
+      updated: now,
+      link: null,
+      locked: false,
+    };
+  }
+
+  if (dsl.title) {
+    const fontSize = 20;
+    const tw = Math.max(dsl.title.length * fontSize * 0.55, 40);
+    const th = fontSize * 1.35;
+    elements.push({
+      ...makeBase("text", startX, 20, tw, th),
+      text: dsl.title,
+      fontSize,
+      fontFamily: 1,
+      textAlign: "left",
+      verticalAlign: "top",
+      lineHeight: 1.35,
+      baseline: Math.round(fontSize),
+      containerId: null,
+      originalText: dsl.title,
+      autoResize: true,
+    });
+  }
+
+  const nodePositions = new Map<string, { cx: number; cy: number }>();
+
+  if (dsl.nodes) {
+    for (let i = 0; i < dsl.nodes.length; i++) {
+      const node = dsl.nodes[i];
+      const col = i % maxPerRow;
+      const row = Math.floor(i / maxPerRow);
+      const x = startX + col * colSpacing;
+      const y = startY + row * rowSpacing;
+
+      const shapeEl = {
+        ...makeBase(node.shape === "ellipse" ? "ellipse" : "rectangle", x, y, nodeWidth, nodeHeight),
+      };
+      elements.push(shapeEl);
+
+      const fontSize = 16;
+      const tw = Math.max(node.label.length * fontSize * 0.55, 40);
+      const th = fontSize * 1.35;
+      const tx = x + (nodeWidth - tw) / 2;
+      const ty = y + (nodeHeight - th) / 2;
+
+      elements.push({
+        ...makeBase("text", tx, ty, tw, th),
+        text: node.label,
+        fontSize,
+        fontFamily: 1,
+        textAlign: "center",
+        verticalAlign: "middle",
+        lineHeight: 1.35,
+        baseline: Math.round(fontSize),
+        containerId: null,
+        originalText: node.label,
+        autoResize: true,
+      });
+
+      nodePositions.set(node.id, { cx: x + nodeWidth / 2, cy: y + nodeHeight / 2 });
+    }
+  }
+
+  if (dsl.edges) {
+    for (const edge of dsl.edges) {
+      const fromPos = nodePositions.get(edge.from);
+      const toPos = nodePositions.get(edge.to);
+      if (!fromPos || !toPos) continue;
+
+      const dx = toPos.cx - fromPos.cx;
+      const dy = toPos.cy - fromPos.cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist === 0) continue;
+
+      // Offset start/end to the edge of the node boxes
+      const ux = dx / dist;
+      const uy = dy / dist;
+      const startOffsetX = ux * (nodeWidth / 2 + 4);
+      const startOffsetY = uy * (nodeHeight / 2 + 4);
+      const endOffsetX = ux * (nodeWidth / 2 + 4);
+      const endOffsetY = uy * (nodeHeight / 2 + 4);
+
+      const sx = fromPos.cx + startOffsetX;
+      const sy = fromPos.cy + startOffsetY;
+      const ex = toPos.cx - endOffsetX;
+      const ey = toPos.cy - endOffsetY;
+      const adx = ex - sx;
+      const ady = ey - sy;
+
+      elements.push({
+        ...makeBase("arrow", sx, sy, Math.abs(adx), Math.abs(ady)),
+        points: [[0, 0], [adx, ady]],
+        startBinding: null,
+        endBinding: null,
+        startArrowhead: null,
+        endArrowhead: "arrow",
+        roundness: { type: 2 },
+        lastCommittedPoint: null,
+        elbowed: false,
+      });
+    }
+  }
+
+  return JSON.stringify(elements);
+}
+
+const DIAGRAM_COOLDOWN_MS = 10_000; // 10s for testing, bump to 60_000 for prod
+
+export const updateDiagram = internalAction({
+  args: { groupId: v.id("groups") },
+  handler: async (ctx, { groupId }) => {
+    const group = await ctx.runQuery(internal.groups.getById, { groupId });
+    if (!group || group.endedAt) return;
+
+    const diagramUpdatedAt = group.diagramUpdatedAt;
+    if (diagramUpdatedAt && Date.now() - diagramUpdatedAt < DIAGRAM_COOLDOWN_MS) return;
+
+    const messages = await ctx.runQuery(
+      internal.messages.getRecentGroupMessagesWithTime,
+      { groupId }
+    );
+    if (messages.length === 0) return;
+
+    const previousDiagram = group.diagram ? group.diagram : null;
+
+    const conversationText = messages
+      .map((m) => `${m.authorName}: ${m.body}`)
+      .join("\n");
+
+    let previousDiagramSection = "";
+    if (previousDiagram) {
+      previousDiagramSection = `\nYour current diagram:\n${previousDiagram}\nYou can modify this by adding/removing/changing nodes and edges, or set unchanged: true if it's still relevant.\n`;
+    }
+
+    try {
+      const { object: result } = await generateObject({
+        model: anthropic("claude-sonnet-4-6"),
+        schema: diagramSchema,
+        prompt: `You are a visual learning assistant. Based on the group conversation, maintain a simple diagram that helps illustrate the concept being discussed.
+
+You do NOT have perfect knowledge. Your diagram should reflect what the students are discussing, not necessarily the "correct" answer.
+
+The group is studying: ${group.name}
+${previousDiagramSection}
+Rules:
+- Max 6 nodes, max 8 edges
+- Keep labels short (1-4 words)
+- The diagram should help students visualize relationships and concepts
+- If the conversation doesn't need a diagram, set unchanged: true
+- If the topic has shifted significantly, replace the diagram entirely
+- Use shapes meaningfully: rectangles for concrete things, ellipses for concepts/processes
+
+Recent conversation:
+${conversationText}`,
+      });
+
+      if (result.unchanged) return;
+
+      const dslJson = JSON.stringify({
+        title: result.title,
+        nodes: result.nodes,
+        edges: result.edges,
+      });
+
+      const saved = await ctx.runMutation(internal.groups.saveDiagramIfFresh, {
+        groupId,
+        diagram: dslJson,
+        expectedUpdatedAt: diagramUpdatedAt,
+      });
+
+      if (!saved) return;
+
+      const excalidrawElements = convertDSLToExcalidraw({
+        title: result.title,
+        nodes: result.nodes,
+        edges: result.edges,
+      });
+
+      await ctx.runMutation(internal.whiteboard.saveElementsInternal, {
+        roomId: `ai-board-${groupId}`,
+        elements: excalidrawElements,
+      });
+    } catch (error) {
+      console.error("AI diagram update failed:", error);
+    }
+  },
+});
+
 // Set to true for demo — AI responds more aggressively to show off all 3 triggers.
 const DEMO_MODE = false;
 
@@ -78,7 +318,7 @@ export const evaluateGroupChat = internalAction({
     } else {
       const lastMsg = messages[messages.length - 1];
       if (lastMsg && scheduledAt && lastMsg._creationTime > scheduledAt) return;
-      if (lastAiTime && Date.now() - lastAiTime < 2 * 60 * 1000) return;
+      if (lastAiTime && Date.now() - lastAiTime < 20 * 1000) return;
     }
 
     const conversationText = messages
@@ -105,8 +345,8 @@ IMPORTANT: Most of the time, the conversation is going fine and you should NOT r
    Example: "wait, which ones are you multiplying together?" or "hmm are you sure about that part?"
    BAD example (too revealing): "wouldn't you multiply by the OTHER fraction?" -- this gives away the answer.
 
-2. STUCK: The conversation has stalled -- students are saying "idk", going silent, or going in circles. Reframe the problem or suggest a concrete approach to try. NEVER reference "class", "the professor", "the lecture", or anything you haven't directly seen in this conversation -- you don't have that context and will make things up.
-   Example: "what if you try writing out a specific example with numbers?" or "maybe break it into smaller steps?"
+2. STUCK: The conversation has stalled -- students are saying "idk", "i dont understand", going silent, or going in circles. This includes when YOU previously asked a question and nobody could answer it or they said they're still confused. In that case, try a different angle -- break the problem down smaller, suggest thinking about a specific concrete example, or reframe the question in a simpler way. Don't just repeat your previous question. NEVER reference "class", "the professor", "the lecture", or anything you haven't directly seen in this conversation -- you don't have that context and will make things up.
+   Example: "what if you try writing out a specific example with numbers?" or "maybe break it into smaller steps?" or "ok let me think about this differently -- what do we know for sure so far?"
 
 3. SHALLOW AGREEMENT: Students are agreeing with each other but their understanding is surface-level -- parroting definitions without real comprehension. Only intervene if this pattern persists across multiple messages -- not just one agreement. Ask a probing edge-case question to test depth.
    Example: "ok but what happens if the input is empty?" or "would that still work with duplicates?"

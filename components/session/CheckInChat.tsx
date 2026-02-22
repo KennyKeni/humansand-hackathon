@@ -36,7 +36,6 @@ export function CheckInChat({
   checkIn,
   sessionId,
   sessionCode,
-  currentUserId,
 }: {
   checkIn: {
     _id: Id<"checkIns">;

@@ -32,7 +32,6 @@ export function MemberList({
   const createGroup = useMutation(api.groups.create);
   const myGroups = useQuery(api.groups.getMyGroups, { sessionId }) ?? [];
 
-  const participants = members.filter((m) => m.role !== "creator");
 
   function toggleMember(userId: Id<"users">) {
     setSelectedIds((prev) => {

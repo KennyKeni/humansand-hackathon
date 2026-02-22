@@ -15,6 +15,7 @@ const ExcalidrawWrapper = dynamic(
 );
 import { SessionHeader } from "@/components/session/SessionHeader";
 import { FloatingPanel } from "@/components/session/FloatingPanel";
+import { AIDiagramPanel } from "@/components/session/AIDiagramPanel";
 import { useTeachingCapture } from "@/hooks/useTeachingCapture";
 import { useTeachingSimulation } from "@/hooks/useTeachingSimulation";
 import { SummaryModal } from "@/components/session/SummaryModal";
@@ -29,6 +30,7 @@ export default function SessionPage() {
   const [panelOpen, setPanelOpen] = useState(true);
   const [activeContext, setActiveContext] = useState<ActiveContext>({ type: "main" });
   const [summaryModalOpen, setSummaryModalOpen] = useState(false);
+  const [aiDiagramOpen, setAIDiagramOpen] = useState(true);
   const hasJoined = useRef(false);
   const [excalidrawAPI, setExcalidrawAPI] =
     useState<ExcalidrawImperativeAPI | null>(null);
@@ -93,6 +95,7 @@ export default function SessionPage() {
       setJoinError("Failed to join session");
       hasJoined.current = false;
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, membership, joinError]);
 
   async function handleNewLesson() {
@@ -227,13 +230,13 @@ export default function SessionPage() {
         </main>
 
         {isViewOnly && (
-          <div className="absolute left-3 top-3 z-20 flex items-center gap-1.5 rounded bg-background/80 px-2.5 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
+          <div className="absolute left-3 top-[4.5rem] z-20 flex items-center gap-1.5 rounded bg-background/80 px-2.5 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
             <Lock className="h-3 w-3" />
             View Only
           </div>
         )}
         {activeContext.type === "group" && (
-          <div className="absolute left-3 top-14 z-20 rounded bg-background/80 px-2.5 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
+          <div className="absolute left-3 top-[4.5rem] z-20 rounded bg-background/80 px-2.5 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
             {activeContext.name}
           </div>
         )}
@@ -260,6 +263,15 @@ export default function SessionPage() {
           sessionCode={code}
           isEnded={isEnded}
         />
+
+        {activeContext.type === "group" && !isEnded && (
+          <AIDiagramPanel
+            key={activeContext.groupId}
+            groupId={activeContext.groupId}
+            isOpen={aiDiagramOpen}
+            onToggle={() => setAIDiagramOpen((prev) => !prev)}
+          />
+        )}
       </div>
 
       <SummaryModal

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Doc, Id } from "@/convex/_generated/dataModel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
 
 interface TeachingCaptureControls {
   status: "idle" | "capturing" | "synthesizing" | "done";
@@ -41,6 +40,7 @@ export function SessionHeader({
   simulation,
   liveSnapshots,
   checkInPhase,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   sessionId,
   checkInCompleted,
   checkInTotal,

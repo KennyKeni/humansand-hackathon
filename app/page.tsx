@@ -38,6 +38,7 @@ function LandingContent() {
     if (isAuthenticated) {
       router.replace(getRedirectTarget());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
   if (isLoading || isAuthenticated) {

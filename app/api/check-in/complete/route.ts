@@ -66,7 +66,7 @@ Respond with ONLY valid JSON in this exact format:
 Be accurate based on what the student actually said. If a topic wasn't discussed, mark confidence as "low" and note it wasn't covered.`,
         },
       ],
-      maxTokens: 800,
+      maxOutputTokens: 800,
     });
 
     // Parse the profile

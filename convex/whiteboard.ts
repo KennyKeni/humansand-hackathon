@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalQuery, internalMutation } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { Id } from "./_generated/dataModel";
 
@@ -142,5 +142,34 @@ export const removeCursor = mutation({
     delete cursors[userId];
 
     await ctx.db.patch(existing._id, { cursors: JSON.stringify(cursors) });
+  },
+});
+
+export const getElements = internalQuery({
+  args: { roomId: v.string() },
+  handler: async (ctx, args) => {
+    const wb = await ctx.db
+      .query("whiteboards")
+      .withIndex("by_roomId", (q) => q.eq("roomId", args.roomId))
+      .first();
+    return wb?.elements ?? "[]";
+  },
+});
+
+export const saveElementsInternal = internalMutation({
+  args: { roomId: v.string(), elements: v.string() },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("whiteboards")
+      .withIndex("by_roomId", (q) => q.eq("roomId", args.roomId))
+      .first();
+    if (existing) {
+      await ctx.db.patch(existing._id, { elements: args.elements });
+    } else {
+      await ctx.db.insert("whiteboards", {
+        roomId: args.roomId,
+        elements: args.elements,
+      });
+    }
   },
 });

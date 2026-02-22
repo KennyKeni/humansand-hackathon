@@ -56,11 +56,22 @@ export function useWhiteboardSync(
     if (whiteboard.elements === lastSavedVersionRef.current) return;
 
     const remoteElements = JSON.parse(whiteboard.elements) as ExcalidrawElement[];
+
+    if (viewOnly) {
+      excalidrawAPI.updateScene({
+        elements: remoteElements,
+        captureUpdate: CaptureUpdateAction.NEVER,
+      });
+      return;
+    }
+
     const localElements = excalidrawAPI.getSceneElements();
     const appState = excalidrawAPI.getAppState();
 
     const reconciledElements = reconcileElements(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       localElements as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       remoteElements as any,
       appState,
     );
@@ -73,7 +84,7 @@ export function useWhiteboardSync(
     requestAnimationFrame(() => {
       isApplyingRemoteRef.current = false;
     });
-  }, [excalidrawAPI, whiteboard?.elements]);
+  }, [excalidrawAPI, whiteboard?.elements, viewOnly]);
 
   // Apply remote cursor updates
   useEffect(() => {
@@ -95,6 +106,7 @@ export function useWhiteboardSync(
 
     for (const [uid, cursor] of Object.entries(cursors)) {
       if (currentUserId && uid === currentUserId) continue;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       collaborators.set(uid as any, {
         pointer: { x: cursor.x, y: cursor.y, tool: cursor.tool },
         username: cursor.username || `User ${uid.slice(0, 4)}`,
@@ -103,10 +115,11 @@ export function useWhiteboardSync(
     }
 
     excalidrawAPI.updateScene({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       collaborators: collaborators as any,
       captureUpdate: CaptureUpdateAction.NEVER,
     });
-  }, [excalidrawAPI, whiteboard?.cursors]);
+  }, [excalidrawAPI, whiteboard?.cursors, currentUserId]);
 
   // Cleanup cursor on unmount (skip for view-only users)
   useEffect(() => {
@@ -114,7 +127,7 @@ export function useWhiteboardSync(
     return () => {
       removeCursorMutation({ roomId: roomId });
     };
-  }, [removeCursorMutation, viewOnly]);
+  }, [removeCursorMutation, viewOnly, roomId]);
 
   const handleChange = useCallback(
     (elements: readonly ExcalidrawElement[]) => {
@@ -128,7 +141,7 @@ export function useWhiteboardSync(
         saveElements({ roomId: roomId, elements: serialized });
       }, 300);
     },
-    [saveElements],
+    [saveElements, roomId],
   );
 
   const handlePointerUpdate = useCallback(
@@ -149,16 +162,17 @@ export function useWhiteboardSync(
         });
       }, 100);
     },
-    [updateCursorMutation],
+    [updateCursorMutation, roomId],
   );
 
+  // One-time initialization of whiteboard data; ref read during render is intentional
   const initialDataRef = useRef<{ elements: ExcalidrawElement[] } | null>(null);
-  if (whiteboard !== undefined && !initialDataRef.current) {
+  if (whiteboard !== undefined && !initialDataRef.current) { // eslint-disable-line react-hooks/refs
     initialDataRef.current = whiteboard === null
       ? { elements: [] }
       : { elements: JSON.parse(whiteboard.elements) as ExcalidrawElement[] };
   }
-  const initialData = initialDataRef.current ?? undefined;
+  const initialData = initialDataRef.current ?? undefined; // eslint-disable-line react-hooks/refs
 
   return {
     handleChange: viewOnly ? noopChange : handleChange,

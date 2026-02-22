@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# StudySync
+
+AI-powered collaborative learning platform where a professor teaches on a shared whiteboard, and an AI agent monitors comprehension, dynamically pairs students into complementary study groups, and facilitates peer learning -- all in real time.
+
+## How It Works
+
+1. **Professor teaches** on a shared Excalidraw whiteboard while AI captures snapshots and synthesizes lesson content
+2. **AI checks in** with each student via chat to probe their understanding of the lesson topics
+3. **Complementary grouping** -- when Student A understands X but not Y, and Student B understands Y but not X, the AI pairs them together
+4. **AI joins group chats** as a participant, nudging discussion and helping students teach each other
+5. **Professor gets feedback** -- summaries of group activity and comprehension data surface what the class is struggling with
+
+## Tech Stack
+
+- **Framework**: Next.js (App Router)
+- **Backend/DB**: Convex (real-time queries, mutations, actions)
+- **Auth**: Convex Auth (anonymous sign-in with display name)
+- **Whiteboard**: Excalidraw (collaborative, real-time sync)
+- **AI**: Anthropic Claude via Vercel AI SDK
+- **Styling**: Tailwind CSS + shadcn/ui
+- **Language**: TypeScript
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- A Convex account
+- An Anthropic API key
+
+### Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+CONVEX_DEPLOYMENT=      # Auto-set by `npx convex dev`
+NEXT_PUBLIC_CONVEX_URL= # Auto-set by `npx convex dev`
+ANTHROPIC_API_KEY=      # For AI actions
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Development
 
-## Learn More
+```bash
+# Start Convex backend (runs in background, syncs functions)
+npx convex dev
 
-To learn more about Next.js, take a look at the following resources:
+# In a separate terminal, start the Next.js dev server
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Open [http://localhost:3000](http://localhost:3000) to get started.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Usage
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Enter your name on the landing page
+2. Create a new session from the lobby (you become the professor/creator)
+3. Share the session code with students
+4. Start teaching -- draw on the whiteboard, then hit "Check-In" to synthesize and probe students
+5. AI matches students into complementary groups automatically
+6. Monitor group discussions and view AI-generated summaries

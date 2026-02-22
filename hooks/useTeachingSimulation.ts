@@ -376,6 +376,7 @@ export function useTeachingSimulation(
 
         const currentElements = api.getSceneElements();
         const newElements = convertToExcalidrawElements(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           lessonStep.elements as any,
           { regenerateIds: true },
         );

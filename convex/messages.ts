@@ -3,8 +3,9 @@ import { mutation, query, internalMutation, internalQuery } from "./_generated/s
 import { internal } from "./_generated/api";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
-// Min student messages since last AI response before eval triggers. Set to 2 for demos.
-const AI_EVAL_THRESHOLD = 4;
+// Min student messages since last AI response before eval triggers.
+const AI_EVAL_THRESHOLD = 2;
+const DIAGRAM_EVAL_THRESHOLD = 2;
 
 export const send = mutation({
   args: {
@@ -77,6 +78,12 @@ export const send = mutation({
           trigger: "dead_air" as const,
           scheduledAt: Date.now(),
         });
+
+        if (studentCount >= DIAGRAM_EVAL_THRESHOLD && studentCount % 2 === 0) {
+          await ctx.scheduler.runAfter(0, internal.ai.updateDiagram, {
+            groupId,
+          });
+        }
       }
     }
   },
