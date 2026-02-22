@@ -2,6 +2,8 @@
 
 AI-powered collaborative learning platform where a professor teaches on a shared whiteboard, and an AI agent monitors comprehension, dynamically pairs students into complementary study groups, and facilitates peer learning -- all in real time.
 
+**Live demo: [valedictorian.app](https://valedictorian.app)**
+
 ## How It Works
 
 1. **Professor teaches** on a shared Excalidraw whiteboard while AI captures snapshots and synthesizes lesson content
@@ -16,7 +18,7 @@ AI-powered collaborative learning platform where a professor teaches on a shared
 - **Backend/DB**: Convex (real-time queries, mutations, actions)
 - **Auth**: Convex Auth (anonymous sign-in with display name)
 - **Whiteboard**: Excalidraw (collaborative, real-time sync)
-- **AI**: Anthropic Claude via Vercel AI SDK
+- **AI**: OpenRouter via Vercel AI SDK
 - **Styling**: Tailwind CSS + shadcn/ui
 - **Language**: TypeScript
 
@@ -26,7 +28,7 @@ AI-powered collaborative learning platform where a professor teaches on a shared
 
 - Node.js 18+
 - A Convex account
-- An Anthropic API key
+- An OpenRouter API key
 
 ### Setup
 
@@ -39,7 +41,7 @@ npm install
 ```env
 CONVEX_DEPLOYMENT=      # Auto-set by `npx convex dev`
 NEXT_PUBLIC_CONVEX_URL= # Auto-set by `npx convex dev`
-ANTHROPIC_API_KEY=      # For AI actions
+OPENROUTER_API_KEY=     # For AI actions
 ```
 
 ### Development
