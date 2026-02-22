@@ -218,8 +218,8 @@ export default function SessionPage() {
         />
       )}
 
-      <div className="relative flex-1 overflow-hidden">
-        <main className="h-full w-full">
+      <div className="relative flex flex-1 min-h-0 overflow-hidden">
+        <main className="relative h-full min-w-0 overflow-hidden" style={{ flex: "1 1 0%", minWidth: 0 }}>
           <ExcalidrawWrapper
             key={activeContext.type === "main" ? "main" : activeContext.groupId}
             roomId={activeContext.type === "main" ? code : `group-${activeContext.groupId}`}
@@ -227,19 +227,19 @@ export default function SessionPage() {
             currentUserId={me?._id}
             onAPIReady={handleAPIReady}
           />
-        </main>
 
-        {isViewOnly && (
-          <div className="absolute left-3 top-[4.5rem] z-20 flex items-center gap-1.5 rounded bg-background/80 px-2.5 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
-            <Lock className="h-3 w-3" />
-            View Only
-          </div>
-        )}
-        {activeContext.type === "group" && (
-          <div className="absolute left-3 top-[4.5rem] z-20 rounded bg-background/80 px-2.5 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
-            {activeContext.name}
-          </div>
-        )}
+          {isViewOnly && (
+            <div className="absolute left-3 top-3 z-20 flex items-center gap-1.5 rounded bg-background/80 px-2.5 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
+              <Lock className="h-3 w-3" />
+              View Only
+            </div>
+          )}
+          {activeContext.type === "group" && (
+            <div className="absolute left-3 top-14 z-20 rounded bg-background/80 px-2.5 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
+              {activeContext.name}
+            </div>
+          )}
+        </main>
 
         {membership.role === "creator" && archivedGroups.length > 0 && !panelOpen && (
           <button

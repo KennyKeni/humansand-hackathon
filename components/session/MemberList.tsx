@@ -71,7 +71,7 @@ export function MemberList({
   }
 
   return (
-    <div className="space-y-2 p-4">
+    <div className="flex-1 min-h-0 overflow-y-auto space-y-2 p-4">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-medium text-muted-foreground">Members</h2>
         {role === "creator" && !selecting && (

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
-import { X, MessageSquare } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, MessageSquare, Maximize2, Minimize2 } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { MemberList } from "./MemberList";
 import { ChatPanel } from "./chat/ChatPanel";
@@ -53,43 +53,15 @@ export function FloatingPanel({
     (isCreator && !!checkInPhase) ||
     (!isCreator && !!checkIn);
 
-  const [tab, setTab] = useState<Tab>(hasCheckInTab ? "check-in" : "chat");
-  const [prevHadCheckIn, setPrevHadCheckIn] = useState(hasCheckInTab);
-  const [width, setWidth] = useState(320);
-  const isDragging = useRef(false);
-  const startX = useRef(0);
-  const startWidth = useRef(0);
+  const [tab, setTab] = useState<Tab>("chat");
+  const [expanded, setExpanded] = useState(false);
 
-  if (hasCheckInTab && !prevHadCheckIn && tab === "chat") {
-    setPrevHadCheckIn(true);
-    setTab("check-in");
-  }
-  if (!hasCheckInTab && prevHadCheckIn) {
-    setPrevHadCheckIn(false);
-  }
-
-  const onDragStart = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    isDragging.current = true;
-    startX.current = e.clientX;
-    startWidth.current = width;
-
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isDragging.current) return;
-      const delta = startX.current - e.clientX;
-      const newWidth = Math.min(Math.max(startWidth.current + delta, 280), 800);
-      setWidth(newWidth);
-    };
-
-    const onMouseUp = () => {
-      isDragging.current = false;
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
-    };
-
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
-  }, [width]);
+  // Auto-switch to check-in tab when check-in becomes available
+  useEffect(() => {
+    if (hasCheckInTab && tab === "chat") {
+      setTab("check-in");
+    }
+  }, [hasCheckInTab]);
 
   if (!isOpen) {
     return (
@@ -104,14 +76,14 @@ export function FloatingPanel({
 
   return (
     <div
-      className="absolute right-0 top-0 bottom-0 z-30 flex flex-col bg-background border-l shadow-lg overflow-hidden"
-      style={{ width }}
+      className="flex h-full flex-col overflow-hidden border-l bg-background"
+      style={
+        expanded
+          ? { flex: "1 1 100%", width: "100%" }
+          : { flex: "0 0 33.333%", minWidth: 340, maxWidth: 480 }
+      }
     >
-      <div
-        onMouseDown={onDragStart}
-        className="absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-primary/20 active:bg-primary/30 z-40"
-      />
-      <div className="flex items-center justify-between border-b px-3 py-2">
+      <div className="flex items-center justify-between border-b px-3 py-2 shrink-0">
         <div className="flex gap-1">
           <TabButton active={tab === "chat"} onClick={() => setTab("chat")}>
             Chat
@@ -125,16 +97,27 @@ export function FloatingPanel({
             </TabButton>
           )}
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5">
+          <button
+            onClick={() => setExpanded((v) => !v)}
+            className="rounded p-1 text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            title={expanded ? "Exit fullscreen" : "Fullscreen"}
+          >
+            {expanded ? (
+              <Minimize2 className="h-3.5 w-3.5" />
+            ) : (
+              <Maximize2 className="h-3.5 w-3.5" />
+            )}
+          </button>
           <button
             onClick={onToggle}
-            className="rounded p-1 hover:bg-muted/50"
+            className="rounded p-1 text-muted-foreground hover:bg-muted/50 hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
       </div>
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col">
         {tab === "chat" ? (
           <ChatPanel
             sessionId={sessionId}
@@ -183,10 +166,10 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
+      className={`relative rounded-md px-3 py-1 text-[13px] font-medium transition-colors ${
         active
-          ? "bg-primary text-primary-foreground"
-          : "text-muted-foreground hover:bg-muted/50"
+          ? "bg-foreground/[0.06] text-foreground"
+          : "text-muted-foreground hover:text-foreground hover:bg-foreground/[0.03]"
       }`}
     >
       {children}

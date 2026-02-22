@@ -6,27 +6,32 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Bot, Loader2 } from "lucide-react";
+import { Bot, Loader2, Send, CheckCheck } from "lucide-react";
 
 function MessageBubble({ msg }: { msg: { _id: string; role: string; body: string } }) {
   const isAI = msg.role === "assistant";
   return (
-    <div className={`flex flex-col ${isAI ? "items-start" : "items-end"}`}>
-      {isAI && (
-        <span className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
-          <Bot className="h-3 w-3" /> AI Assistant
-        </span>
-      )}
-      {!isAI && (
-        <span className="text-xs text-muted-foreground mb-0.5">You</span>
-      )}
-      <div
-        className={`rounded-lg px-3 py-2 text-sm max-w-[85%] ${
-          isAI ? "bg-muted" : "bg-primary text-primary-foreground"
-        }`}
-        style={{ overflowWrap: "break-word", wordBreak: "break-word" }}
-      >
-        {msg.body}
+    <div className={`flex ${isAI ? "justify-start" : "justify-end"}`}>
+      <div className={`max-w-[85%] ${isAI ? "flex gap-2" : ""}`}>
+        {isAI && (
+          <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
+            <Bot className="h-3.5 w-3.5 text-primary" />
+          </div>
+        )}
+        <div>
+          <span className={`mb-1 block text-[11px] font-medium tracking-wide uppercase text-muted-foreground ${isAI ? "" : "text-right"}`}>
+            {isAI ? "Assistant" : "You"}
+          </span>
+          <div
+            className={`rounded-xl px-3.5 py-2.5 text-[13px] leading-relaxed break-words ${
+              isAI
+                ? "rounded-tl-sm bg-muted/70"
+                : "rounded-tr-sm bg-primary text-primary-foreground"
+            }`}
+          >
+            {msg.body}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -103,17 +108,20 @@ export function CheckInChat({
 
   if (checkIn.status === "completed") {
     return (
-      <div className="flex h-full flex-col">
-        <div className="flex-1 overflow-y-auto px-4">
-          <div className="space-y-3 py-4">
+      <div className="flex flex-1 min-h-0 flex-col">
+        <div className="flex-1 min-h-0 overflow-y-auto px-4">
+          <div className="space-y-4 py-4">
             {messages?.map((msg) => (
               <MessageBubble key={msg._id} msg={msg} />
             ))}
             <div ref={bottomRef} />
           </div>
         </div>
-        <div className="border-t px-4 py-3 text-center text-sm text-muted-foreground shrink-0">
-          Check-in complete! Your teacher will group you soon.
+        <div className="border-t bg-muted/30 px-4 py-4 text-center shrink-0">
+          <div className="flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground">
+            <CheckCheck className="h-4 w-4 text-green-600" />
+            Check-in complete! Your teacher will group you soon.
+          </div>
         </div>
       </div>
     );
@@ -122,51 +130,71 @@ export function CheckInChat({
   return (
     <div className="flex h-full flex-col">
       <div className="flex-1 overflow-y-auto px-4">
-        <div className="space-y-3 py-4">
+        <div className="space-y-4 py-4">
           {messages?.map((msg) => (
             <MessageBubble key={msg._id} msg={msg} />
           ))}
           {sending && (
-            <div className="flex flex-col items-start">
-              <span className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
-                <Bot className="h-3 w-3" /> AI Assistant
-              </span>
-              <div className="rounded-lg px-3 py-2 text-sm bg-muted">
-                <Loader2 className="h-4 w-4 animate-spin" />
+            <div className="flex justify-start">
+              <div className="flex gap-2">
+                <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                  <Bot className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <div>
+                  <span className="mb-1 block text-[11px] font-medium tracking-wide uppercase text-muted-foreground">
+                    Assistant
+                  </span>
+                  <div className="rounded-xl rounded-tl-sm bg-muted/70 px-4 py-3">
+                    <div className="flex gap-1">
+                      <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
           <div ref={bottomRef} />
         </div>
       </div>
-      <div className="border-t px-4 py-3 space-y-2 shrink-0">
-        <form onSubmit={handleSend} className="flex gap-2">
+      <div className="border-t bg-muted/20 px-3 py-3 space-y-2 shrink-0">
+        <form onSubmit={handleSend} className="flex gap-2 items-center">
           <Input
-            placeholder="Share what you learned or found confusing..."
+            placeholder="Share what you learned..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             maxLength={2000}
             disabled={sending}
             autoFocus
+            className="text-[13px]"
           />
-          <Button type="submit" disabled={!input.trim() || sending} size="sm">
-            Send
+          <Button
+            type="submit"
+            disabled={!input.trim() || sending}
+            size="icon"
+            className="h-9 w-9 shrink-0 rounded-lg"
+          >
+            <Send className="h-4 w-4" />
           </Button>
         </form>
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
-          className="w-full"
+          className="w-full text-muted-foreground hover:text-foreground"
           onClick={handleComplete}
           disabled={completing}
         >
           {completing ? (
             <>
-              <Loader2 className="h-3 w-3 animate-spin mr-1" />
+              <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
               Wrapping up...
             </>
           ) : (
-            "I'm Done"
+            <>
+              <CheckCheck className="h-3.5 w-3.5 mr-1.5" />
+              I'm Done
+            </>
           )}
         </Button>
       </div>

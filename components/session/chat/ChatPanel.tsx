@@ -30,7 +30,7 @@ export function ChatPanel({
   const messages = (activeContext.type === "main" ? sessionMessages : groupMessages) ?? [];
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="flex flex-1 min-h-0 flex-col">
       <MessageList messages={messages} currentUserId={currentUserId} />
       {isEnded && activeContext.type === "group" ? (
         <div className="flex items-center justify-center border-t px-4 py-3 text-sm text-muted-foreground">
