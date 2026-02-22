@@ -45,14 +45,14 @@ export function JoinSession() {
       <CardContent>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <Input
-            placeholder="Session code"
+            placeholder="Session Code"
             value={code}
             onChange={(e) => {
               setCode(e.target.value.toUpperCase());
               setError(null);
             }}
             maxLength={6}
-            className="font-mono tracking-widest uppercase"
+            className="font-mono tracking-widest"
           />
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button
