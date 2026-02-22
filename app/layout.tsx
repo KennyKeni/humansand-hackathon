@@ -21,7 +21,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "StudySync",
+  title: "Learn&",
   description: "AI-powered collaborative learning platform",
 };
 

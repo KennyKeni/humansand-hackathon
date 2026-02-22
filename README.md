@@ -1,4 +1,4 @@
-# StudySync
+# Learn&
 
 AI-powered collaborative learning platform where a professor teaches on a shared whiteboard, and an AI agent monitors comprehension, dynamically pairs students into complementary study groups, and facilitates peer learning -- all in real time.
 

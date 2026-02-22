@@ -66,7 +66,7 @@ function LandingContent() {
       <Card className="w-full max-w-sm animate-landing-enter">
         <CardHeader className="text-center">
           <CardTitle className="font-display text-3xl" style={{ animationDelay: "75ms" }}>
-            StudySync
+            Learn&amp;
           </CardTitle>
           <CardDescription className="animate-landing-enter" style={{ animationDelay: "150ms" }}>
             Enter your name to get started
