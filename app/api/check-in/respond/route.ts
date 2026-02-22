@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateText } from "ai";
-import { anthropic } from "@ai-sdk/anthropic";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY! });
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
     const exchangeCount = messages.filter((m) => m.role === "student").length;
 
     const { text: aiResponse } = await generateText({
-      model: anthropic("claude-haiku-4-5-20251001"),
+      model: openrouter("openrouter/free"),
       system: `You are a relaxed but professional AI Teaching Assistant doing a quick 1-on-1 check-in with a student. You want to map what they understand and what's fuzzy -- nothing more.
 
 RULES:

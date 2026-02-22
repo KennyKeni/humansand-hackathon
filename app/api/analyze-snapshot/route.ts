@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateText } from "ai";
-import { anthropic } from "@ai-sdk/anthropic";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY! });
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { text: description } = await generateText({
-      model: anthropic("claude-haiku-4-5-20251001"),
+      model: openrouter("openrouter/free"),
       messages: [
         {
           role: "user",

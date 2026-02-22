@@ -4,8 +4,10 @@ import crypto from "crypto";
 import { v } from "convex/values";
 import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { anthropic } from "@ai-sdk/anthropic";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { generateObject } from "ai";
+
+const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY! });
 import { z } from "zod";
 
 const evalSchema = z.object({
@@ -248,7 +250,7 @@ export const updateDiagram = internalAction({
 
     try {
       const { object: result } = await generateObject({
-        model: anthropic("claude-sonnet-4-6"),
+        model: openrouter("openrouter/free"),
         schema: diagramSchema,
         prompt: `You are a visual learning assistant. Based on the group conversation, maintain a simple diagram that helps illustrate the concept being discussed.
 
@@ -361,7 +363,7 @@ export const evaluateGroupChat = internalAction({
 
     try {
       const { object: evaluation } = await generateObject({
-        model: anthropic("claude-sonnet-4-6"),
+        model: openrouter("openrouter/free"),
         schema: evalSchema,
         prompt: `You are a fellow student in a peer study group, NOT a teacher or tutor. You're reviewing the recent conversation to decide if you should chime in.
 
@@ -479,7 +481,7 @@ export const summarizeGroup = internalAction({
       ].map(([id, name]) => ({ userId: id as string, name: name as string }));
 
       const { object: summary } = await generateObject({
-        model: anthropic("claude-sonnet-4-6"),
+        model: openrouter("openrouter/free"),
         maxRetries: 3,
         schema: summarySchema,
         prompt: `You are an AI teaching assistant analyzing a student group discussion.
