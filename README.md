@@ -2,7 +2,7 @@
 
 AI-powered collaborative learning platform where a professor teaches on a shared whiteboard, and an AI agent monitors comprehension, dynamically pairs students into complementary study groups, and facilitates peer learning -- all in real time.
 
-**Live demo: [valedictorian.app](https://valedictorian.app)**
+**Live demo: [valedictorian.app](https://valedictorian.app)** (uses OpenRouter free tier, so model quality will be poor)
 
 ## How It Works
 
