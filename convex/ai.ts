@@ -229,6 +229,23 @@ export const updateDiagram = internalAction({
       previousDiagramSection = `\nYour current diagram:\n${previousDiagram}\nYou can modify this by adding/removing/changing nodes and edges, or set unchanged: true if it's still relevant.\n`;
     }
 
+    let whiteboardText = "";
+    try {
+      const elements = await ctx.runQuery(internal.whiteboard.getElements, {
+        roomId: `group-${groupId}`,
+      });
+      const parsed: { type?: string; text?: string }[] = JSON.parse(elements);
+      const texts = parsed
+        .filter((el) => el.type === "text" && el.text)
+        .map((el) => el.text!.trim())
+        .filter(Boolean);
+      if (texts.length > 0) {
+        whiteboardText = texts.join("\n");
+      }
+    } catch {
+      // Non-fatal: proceed without whiteboard context
+    }
+
     try {
       const { object: result } = await generateObject({
         model: anthropic("claude-sonnet-4-6"),
@@ -246,7 +263,7 @@ Rules:
 - If the conversation doesn't need a diagram, set unchanged: true
 - If the topic has shifted significantly, replace the diagram entirely
 - Use shapes meaningfully: rectangles for concrete things, ellipses for concepts/processes
-
+${whiteboardText ? `\nThe group's whiteboard currently contains this text:\n${whiteboardText}\n\nUse this to better understand what the students are working through visually.\n` : ""}
 Recent conversation:
 ${conversationText}`,
       });
@@ -325,9 +342,22 @@ export const evaluateGroupChat = internalAction({
       .map((m) => `${m.authorName}: ${m.body}`)
       .join("\n");
 
-    // TODO: Add whiteboard context here for better misconception detection.
-    // Will be integrated from the teaching capture branch.
-    // Pass whiteboard snapshot text alongside conversation for correctness checking.
+    let whiteboardText = "";
+    try {
+      const elements = await ctx.runQuery(internal.whiteboard.getElements, {
+        roomId: `group-${groupId}`,
+      });
+      const parsed: { type?: string; text?: string }[] = JSON.parse(elements);
+      const texts = parsed
+        .filter((el) => el.type === "text" && el.text)
+        .map((el) => el.text!.trim())
+        .filter(Boolean);
+      if (texts.length > 0) {
+        whiteboardText = texts.join("\n");
+      }
+    } catch {
+      // Non-fatal: proceed without whiteboard context
+    }
 
     try {
       const { object: evaluation } = await generateObject({
@@ -363,6 +393,7 @@ Rules:
 - You are a peer who might also be wrong, not an authority
 - NEVER reference "class", "the professor", "the lecture", or "the board" -- you only know what's in this conversation
 ${DEMO_MODE ? "" : "- When in doubt, don't respond"}
+${whiteboardText ? `\nThe group's whiteboard currently contains:\n${whiteboardText}\n\nUse this to silently inform your understanding of what the students are working on. Do NOT reference the whiteboard directly in your message.\n` : ""}
 Recent conversation:
 ${conversationText}`,
       });
