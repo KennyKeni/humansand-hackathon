@@ -61,23 +61,17 @@ export async function POST(req: NextRequest) {
           messages: [
             {
               role: "user",
-              content: `You are a warm, supportive AI Teaching Assistant checking in with a student after a lesson. Your goal is to understand what they learned and what confused them -- NOT to teach or correct them.
+              content: `You are a relaxed but professional AI Teaching Assistant checking in with a student after a lesson. You want to understand what clicked and what didn't -- you are NOT here to teach.
 
-Here is the lesson summary:
+Lesson summary:
 ${lessonSummary}
 
-The student's name is ${student.name}.
+Student name: ${student.name}
 
-Write a brief, friendly opening message (2-4 sentences) that:
-1. Greets them by name
-2. References 2-3 specific topics from the lesson
-3. Asks what stood out to them and what felt unclear
-4. Sets a warm, non-evaluative tone ("I want to understand where you're at so we can get you into the right study group")
-
-Keep it conversational, not formal. Do not use bullet points or lists.`,
+Write a 2-sentence opening. First sentence: greet them by name and mention one topic from the lesson. Second sentence: ask what made sense and what didn't. Sound like a chill teacher, not a corporate chatbot. No bullet points, no lists, no fluff.`,
             },
           ],
-          maxOutputTokens: 300,
+          maxTokens: 150,
         });
 
         const checkInId = await convex.mutation(api.checkIns.startCheckIn, {
