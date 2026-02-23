@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { text: description } = await generateText({
-      model: openrouter("openrouter/free"),
+      model: openrouter("google/gemini-3-flash-preview"),
       messages: [
         {
           role: "user",

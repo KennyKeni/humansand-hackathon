@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     // Extract comprehension profile using Claude
     const { text: profileJson } = await generateText({
-      model: openrouter("openrouter/free"),
+      model: openrouter("google/gemini-3-flash-preview"),
       messages: [
         {
           role: "user",

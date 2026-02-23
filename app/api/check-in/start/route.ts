@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     const results = await Promise.all(
       students.map(async (student) => {
         const { text: openingMessage } = await generateText({
-          model: openrouter("openrouter/free"),
+          model: openrouter("google/gemini-3-flash-preview"),
           messages: [
             {
               role: "user",
