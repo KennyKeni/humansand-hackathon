@@ -4,12 +4,19 @@ import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY! });
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
+type ComputeMatchesBody = {
+  sessionId?: Id<"sessions">;
+  sessionCode?: string;
+};
+
 export async function POST(req: NextRequest) {
   try {
-    const { sessionId, sessionCode } = await req.json();
+    const { sessionId, sessionCode } =
+      (await req.json()) as ComputeMatchesBody;
 
     if (!sessionId || !sessionCode) {
       return NextResponse.json(

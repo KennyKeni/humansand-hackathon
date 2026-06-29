@@ -6,6 +6,9 @@ import { api } from "@/convex/_generated/api";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
 type CaptureStatus = "idle" | "capturing" | "synthesizing" | "done";
+type SynthesizeLessonResponse = {
+  summary?: string;
+};
 
 const CAPTURE_INTERVAL_MS = 15_000;
 
@@ -121,7 +124,7 @@ export function useTeachingCapture(
           elementHash: currentHash,
         }),
       });
-      const data = await res.json();
+      const data = (await res.json()) as unknown;
       console.log("[capture] response:", res.status, data);
     } catch (err) {
       console.error("[capture] failed:", err);
@@ -174,7 +177,7 @@ export function useTeachingCapture(
         body: JSON.stringify({ sessionCode: sessionCodeRef.current }),
       });
 
-      const data = await res.json();
+      const data = (await res.json()) as SynthesizeLessonResponse;
       if (data.summary) {
         setSummary(data.summary);
       }

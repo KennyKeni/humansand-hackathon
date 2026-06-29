@@ -7,9 +7,16 @@ import { api } from "@/convex/_generated/api";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
+type AnalyzeSnapshotBody = {
+  imageBase64?: string;
+  sessionCode?: string;
+  elementHash?: number;
+};
+
 export async function POST(req: NextRequest) {
   try {
-    const { imageBase64, sessionCode, elementHash } = await req.json();
+    const { imageBase64, sessionCode, elementHash } =
+      (await req.json()) as AnalyzeSnapshotBody;
 
     if (!imageBase64 || !sessionCode) {
       return NextResponse.json(

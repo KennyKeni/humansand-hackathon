@@ -1,0 +1,25 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "learnand",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-06-29",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "routes": [
+    {
+      "pattern": "learnand.kennykeni.com",
+      "custom_domain": true
+    }
+  ],
+  "vars": {
+    "NEXT_PUBLIC_CONVEX_URL": "https://spotted-starling-965.convex.cloud",
+    "NEXT_PUBLIC_CONVEX_SITE_URL": "https://spotted-starling-965.convex.site"
+  }
+}

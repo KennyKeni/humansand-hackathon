@@ -5,9 +5,16 @@ import { Id } from "@/convex/_generated/dataModel";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
+type SendToRoomsBody = {
+  sessionId?: Id<"sessions">;
+  sessionCode?: string;
+  creatorId?: Id<"users">;
+};
+
 export async function POST(req: NextRequest) {
   try {
-    const { sessionId, sessionCode, creatorId } = await req.json();
+    const { sessionId, sessionCode, creatorId } =
+      (await req.json()) as SendToRoomsBody;
 
     if (!sessionId || !sessionCode || !creatorId) {
       return NextResponse.json(
@@ -73,7 +80,7 @@ export async function POST(req: NextRequest) {
 
         await convex.mutation(api.messages.sendSystem, {
           sessionId,
-          authorId: creatorId as Id<"users">,
+          authorId: creatorId,
           body: openingMessage,
           groupId,
           isSystem: true,

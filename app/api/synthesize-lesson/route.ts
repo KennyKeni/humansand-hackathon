@@ -7,9 +7,13 @@ import { api } from "@/convex/_generated/api";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
+type SynthesizeLessonBody = {
+  sessionCode?: string;
+};
+
 export async function POST(req: NextRequest) {
   try {
-    const { sessionCode } = await req.json();
+    const { sessionCode } = (await req.json()) as SynthesizeLessonBody;
 
     if (!sessionCode) {
       return NextResponse.json(
