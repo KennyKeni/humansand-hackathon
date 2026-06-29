@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { text: description } = await generateText({
-      model: openrouter("moonshotai/kimi-k2.7-code"),
+      model: openrouter("qwen/qwen3.7-plus"),
       messages: [
         {
           role: "user",

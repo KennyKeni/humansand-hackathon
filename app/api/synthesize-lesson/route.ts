@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       .join("\n\n");
 
     const { text: summary } = await generateText({
-      model: openrouter("moonshotai/kimi-k2.7-code"),
+      model: openrouter("qwen/qwen3.7-plus"),
       messages: [
         {
           role: "user",
