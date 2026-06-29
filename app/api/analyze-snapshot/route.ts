@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { text: description } = await generateText({
-      model: openrouter("google/gemini-3.1-flash-lite"),
+      model: openrouter("moonshotai/kimi-k2.7-code"),
       messages: [
         {
           role: "user",
