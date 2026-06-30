@@ -28,9 +28,6 @@ jobs:
       - name: Validate application
         run: pnpm check
 
-      - name: Build Cloudflare bundle
-        run: pnpm build:cloudflare
-
   preflight:
     runs-on: ubuntu-latest
     permissions:

@@ -92,7 +92,7 @@ pnpm convex env set CONVEX_SITE_URL https://spotted-starling-965.convex.site
 ```bash
 pnpm lint              # ESLint over source files
 pnpm typecheck         # TypeScript check
-pnpm check             # lint, typecheck, Cloudflare type check, Next build
+pnpm check             # lint, typecheck, OpenNext build, Cloudflare type check
 pnpm build             # Next.js build
 pnpm build:cloudflare  # OpenNext Cloudflare bundle
 pnpm preview           # Local Cloudflare preview
