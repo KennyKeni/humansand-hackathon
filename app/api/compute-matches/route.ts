@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       .filter((s) => !profiledIds.has(s.userId))
       .map((s) => s.userId);
 
-    // Build student profiles for Claude
+    // Build student profiles for the matching prompt.
     const studentProfiles = await Promise.all(
       profiles.map(async (p) => {
         const member = students.find((s) => s.userId === p.userId);

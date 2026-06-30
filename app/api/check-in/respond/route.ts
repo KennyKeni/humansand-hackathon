@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       checkInId,
     });
 
-    // Build conversation history for Claude
+    // Build conversation history for the response prompt.
     const conversationHistory = messages.map((m) => ({
       role: m.role === "assistant" ? ("assistant" as const) : ("user" as const),
       content: m.body,

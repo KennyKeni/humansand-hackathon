@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Doc, Id } from "@/convex/_generated/dataModel";
+import { Doc } from "@/convex/_generated/dataModel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -13,14 +13,6 @@ interface TeachingCaptureControls {
   startCapturing: (sessionCode: string) => Promise<void>;
   stopAndSynthesize: () => Promise<void>;
   reset: () => void;
-}
-
-interface SimulationControls {
-  status: "idle" | "running" | "done";
-  step: number;
-  totalSteps: number;
-  start: () => void;
-  stop: () => void;
 }
 
 interface Snapshot {
@@ -37,11 +29,8 @@ export function SessionHeader({
   isCreator,
   teachingCapture,
   sessionCode,
-  simulation,
   liveSnapshots,
   checkInPhase,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sessionId,
   checkInCompleted,
   checkInTotal,
   onStartCheckIn,
@@ -54,10 +43,8 @@ export function SessionHeader({
   isCreator?: boolean;
   teachingCapture?: TeachingCaptureControls;
   sessionCode?: string;
-  simulation?: SimulationControls;
   liveSnapshots?: Snapshot[];
   checkInPhase?: string;
-  sessionId?: Id<"sessions">;
   checkInCompleted?: number;
   checkInTotal?: number;
   onStartCheckIn?: () => void;

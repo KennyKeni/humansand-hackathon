@@ -17,30 +17,11 @@ import { SessionHeader } from "@/components/session/SessionHeader";
 import { FloatingPanel } from "@/components/session/FloatingPanel";
 import { AIDiagramPanel } from "@/components/session/AIDiagramPanel";
 import { useTeachingCapture } from "@/hooks/useTeachingCapture";
-import { useTeachingSimulation } from "@/hooks/useTeachingSimulation";
 import { SummaryModal } from "@/components/session/SummaryModal";
 
 export type ActiveContext =
   | { type: "main" }
   | { type: "group"; groupId: Id<"groups">; name: string };
-
-const GROUP_COLORS = [
-  "border-group-1",
-  "border-group-2",
-  "border-group-3",
-  "border-group-4",
-  "border-group-5",
-  "border-group-6",
-];
-
-const GROUP_TEXT_COLORS = [
-  "text-group-1",
-  "text-group-2",
-  "text-group-3",
-  "text-group-4",
-  "text-group-5",
-  "text-group-6",
-];
 
 export default function SessionPage() {
   const { code } = useParams<{ code: string }>();
@@ -60,7 +41,6 @@ export default function SessionPage() {
   const resetSession = useMutation(api.teaching.resetSession);
 
   const teachingCapture = useTeachingCapture(excalidrawAPI);
-  const simulation = useTeachingSimulation(excalidrawAPI);
 
   // Live snapshot subscription
   const isCapturing = teachingCapture.status !== "idle";
@@ -205,10 +185,8 @@ export default function SessionPage() {
         isCreator={membership.role === "creator"}
         teachingCapture={teachingCapture}
         sessionCode={code}
-        simulation={simulation}
         liveSnapshots={liveSnapshots ?? []}
         checkInPhase={checkInPhase}
-        sessionId={session._id}
         checkInCompleted={checkInStatus?.completed}
         checkInTotal={checkInStatus?.total}
         onStartCheckIn={handleStartCheckIn}

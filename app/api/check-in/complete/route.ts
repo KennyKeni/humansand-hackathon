@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       .map((m) => `${m.role === "assistant" ? "AI" : "Student"}: ${m.body}`)
       .join("\n\n");
 
-    // Extract comprehension profile using Claude
+    // Extract the comprehension profile from the check-in transcript.
     const { text: profileJson } = await generateText({
       model: openrouter("qwen/qwen3.7-plus"),
       messages: [

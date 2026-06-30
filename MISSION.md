@@ -1,56 +1,69 @@
-# Mission: Collaborative Classroom with AI-Powered Check-Ins
+# Mission: Collaborative Classroom With AI-Powered Check-Ins
 
 ## Vision
-A web app where Teachers teach on a virtual whiteboard and Students join the same session via URL. An AI Agent Swarm facilitates understanding checks and peer-to-peer learning.
+
+Learn& helps a Teacher run a live whiteboard lesson, ask Students quick AI-guided comprehension questions, and form peer discussion rooms where complementary knowledge gaps can be filled by classmates.
 
 ## MVP Scope
 
-### Core Flow (Demo Scenario)
-1. **Teacher creates a session** → gets a shareable URL
-2. **Students join** the session and see the whiteboard in real-time
-3. **Teacher teaches** a concept on the whiteboard
-4. **Teacher presses "Check-In"** → triggers the Agent Swarm
-5. **Agent Swarm checks in with each student** via chat — asks questions to gauge understanding
-6. **Agent synthesizes results** — identifies what each student understands and doesn't
-7. **Complementary pairing** — Students who understand concept A but not B are paired (via chat) with students who understand B but not A, so they teach each other
-8. **Teacher receives a concise report** — what students struggled with, what was well understood, what to revisit
-9. **Class resumes** — Teacher continues the lesson with actionable insights
+### Core Flow
 
-### Key Features (MVP)
-- Shared whiteboard session (Teacher + Students)
-- Session/room management (create, join via URL, role assignment: Teacher vs Student)
-- "Check-In" button (Teacher only) that kicks off the Agent Swarm
-- Agent chat with each student (1-on-1 check-in conversations)
-- Synthesis engine — aggregates understanding across all students
-- Complementary student pairing + peer chat
-- Teacher dashboard/report — concise summary of class understanding
+1. Teacher creates a session and gets a shareable URL.
+2. Students join the session and see the whiteboard in real time.
+3. Teacher teaches a concept on the whiteboard.
+4. Teacher presses "Check-In" to synthesize the lesson and start the AI check-in phase.
+5. AI checks in with each Student through a one-on-one chat.
+6. AI synthesizes each Student's strengths and gaps.
+7. AI proposes complementary study groups.
+8. Teacher sends Students into discussion rooms.
+9. Teacher reviews group summaries and resumes the lesson.
 
-### Stretch Goals (Post-MVP)
-- **Evolving peer chats** — When a peer chat reaches consensus (everyone understands the paired concepts), the agent re-evaluates whether new gaps surfaced during the conversation. If so, the chat evolves: new topics are introduced, or students get re-paired with different partners to address the newly discovered misunderstandings. The peer learning phase becomes fluid rather than one-shot.
-- Educational artifact generation (quizzes, games, exercises) by a Teacher Assistant Agent for concepts students struggled with
-- Richer Teacher dashboard with per-student breakdowns
-- Persistent session history
+### Key Features
+
+- Shared whiteboard session for Teacher and Students.
+- Session creation, joining, and role assignment.
+- Teaching capture with snapshot transcription and lesson synthesis.
+- One-on-one AI check-in conversations.
+- Complementary student pairing.
+- Peer discussion rooms with group chat and group whiteboard.
+- Teacher dashboard and group summaries.
+
+### Stretch Goals
+
+- Evolving peer chats that can introduce newly discovered gaps.
+- Generated exercises or quizzes for concepts Students struggled with.
+- Richer Teacher dashboard with per-Student breakdowns.
+- Persistent session history.
 
 ## Architecture Notes
 
 ### Roles
-- **Teacher**: Creates session, draws on whiteboard, triggers check-ins, receives reports
-- **Student**: Joins session via URL, views whiteboard, responds to agent check-ins, participates in peer chats
 
-### Agent Swarm Design
-- One agent instance per student for the check-in phase (parallel conversations)
-- A synthesis agent that aggregates individual check-in results
-- A pairing agent that matches students with complementary knowledge gaps
-- All agents coordinate to produce: (1) peer pairings, (2) teacher report
+- **Teacher**: Creates the session, draws on the whiteboard, starts check-ins, sends rooms, and reviews reports.
+- **Student**: Joins the session, watches the whiteboard, responds to AI check-ins, and participates in peer rooms.
+
+The code still contains role names like `creator`, `professor`, and `participant`. Treat `creator` and `professor` as Teacher roles, and `participant` as Student.
+
+### Agent Design
+
+- Check-in agent: asks each Student short targeted questions.
+- Synthesis agent: extracts a comprehension profile from each check-in.
+- Pairing agent: proposes complementary groups.
+- Group assistant: nudges peer discussion without replacing peer teaching.
 
 ### Tech Stack
-- **Frontend**: Next.js (App Router), React, TypeScript, TailwindCSS
-- **Backend/DB**: Convex (real-time serverless)
+
+- **Frontend**: Next.js App Router, React, TypeScript, Tailwind CSS
+- **Deployment**: Cloudflare Workers through OpenNext
+- **Backend/DB**: Convex
+- **Auth**: Convex Auth
 - **Whiteboard**: Excalidraw
-- **AI**: AI SDK + OpenAI
-- **UI**: shadcn/ui, Radix UI
+- **AI**: OpenRouter through AI SDK
+- **UI**: shadcn/ui and Radix UI
 
 ### Guiding Principles
-- **MVP-first**: Skip polish, get the core loop working end-to-end
-- **Real-time**: Leverage Convex for live updates across all participants
-- **Keep it simple**: Minimal UI, focus on the flow working correctly
+
+- MVP first: keep the core loop working end to end.
+- Real-time by default: use Convex live queries where they simplify the interface.
+- Keep workflows local: route files and UI modules should call deeper workflow modules instead of knowing the whole sequence.
+- Keep deployment explicit: Cloudflare Worker env and Convex env are separate.

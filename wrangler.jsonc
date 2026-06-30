@@ -19,7 +19,9 @@
     }
   ],
   "vars": {
-    "NEXT_PUBLIC_CONVEX_URL": "https://spotted-starling-965.convex.cloud",
-    "NEXT_PUBLIC_CONVEX_SITE_URL": "https://spotted-starling-965.convex.site"
+    "NEXT_PUBLIC_CONVEX_URL": "https://spotted-starling-965.convex.cloud"
+  },
+  "secrets": {
+    "required": ["OPENROUTER_API_KEY"]
   }
 }

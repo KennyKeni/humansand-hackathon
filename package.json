@@ -2,18 +2,27 @@
   "name": "humansand-hackathon",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@11.8.0",
+  "engines": {
+    "node": ">=24.16.0 <25",
+    "pnpm": ">=11.8.0 <12"
+  },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "convex:dev": "convex dev",
+    "build": "NEXT_PUBLIC_CONVEX_URL=${NEXT_PUBLIC_CONVEX_URL:-https://spotted-starling-965.convex.cloud} next build",
+    "build:cloudflare": "NEXT_PUBLIC_CONVEX_URL=${NEXT_PUBLIC_CONVEX_URL:-https://spotted-starling-965.convex.cloud} opennextjs-cloudflare build",
     "start": "next start",
-    "lint": "eslint",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit --incremental false --pretty false",
+    "check": "pnpm lint && pnpm typecheck && pnpm cf-typegen:check && pnpm build",
+    "preview": "pnpm build:cloudflare && opennextjs-cloudflare preview",
+    "deploy": "pnpm build:cloudflare && opennextjs-cloudflare deploy",
+    "deploy:convex": "convex deploy --yes --typecheck enable",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv --include-runtime false cloudflare-env.d.ts",
+    "cf-typegen:check": "wrangler types --env-interface CloudflareEnv --include-runtime false --check cloudflare-env.d.ts"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^3.0.46",
-    "@ai-sdk/openai": "^3.0.30",
     "@auth/core": "^0.37.0",
     "@convex-dev/auth": "^0.0.90",
     "@excalidraw/excalidraw": "^0.18.0",

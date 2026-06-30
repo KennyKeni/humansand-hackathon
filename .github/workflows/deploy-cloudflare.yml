@@ -7,38 +7,98 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      NEXT_PUBLIC_CONVEX_URL: ${{ vars.NEXT_PUBLIC_CONVEX_URL }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up mise
+        uses: jdx/mise-action@v3
+        with:
+          cache: true
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate application
+        run: pnpm check
+
+      - name: Build Cloudflare bundle
+        run: pnpm build:cloudflare
+
+  preflight:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      deploy_cloudflare: ${{ steps.check.outputs.deploy_cloudflare }}
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      NEXT_PUBLIC_CONVEX_URL: ${{ vars.NEXT_PUBLIC_CONVEX_URL }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    steps:
+      - name: Check deploy prerequisites
+        id: check
+        run: |
+          deploy_cloudflare=true
+          missing=()
+
+          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            missing+=("CLOUDFLARE_ACCOUNT_ID")
+          fi
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            missing+=("CLOUDFLARE_API_TOKEN")
+          fi
+          if [ -z "$NEXT_PUBLIC_CONVEX_URL" ]; then
+            missing+=("NEXT_PUBLIC_CONVEX_URL")
+          fi
+          if [ -z "$OPENROUTER_API_KEY" ]; then
+            missing+=("OPENROUTER_API_KEY")
+          fi
+
+          if [ "${#missing[@]}" -gt 0 ]; then
+            deploy_cloudflare=false
+            joined="$(IFS=, ; echo "${missing[*]}")"
+            echo "::notice title=Cloudflare deploy skipped::Set missing deploy inputs: ${joined}"
+          fi
+
+          echo "deploy_cloudflare=${deploy_cloudflare}" >> "$GITHUB_OUTPUT"
+
+  deploy-cloudflare:
+    needs:
+      - validate
+      - preflight
+    if: ${{ needs.preflight.outputs.deploy_cloudflare == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
     env:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CONVEX_DEPLOYMENT: ${{ vars.CONVEX_DEPLOYMENT }}
-      NEXT_PUBLIC_CONVEX_SITE_URL: ${{ vars.NEXT_PUBLIC_CONVEX_SITE_URL }}
       NEXT_PUBLIC_CONVEX_URL: ${{ vars.NEXT_PUBLIC_CONVEX_URL }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
     steps:
-      - name: Check Cloudflare token
-        if: ${{ env.CLOUDFLARE_API_TOKEN == '' }}
-        run: |
-          echo "::warning title=Missing CLOUDFLARE_API_TOKEN::Set CLOUDFLARE_API_TOKEN in repository secrets to enable automatic Cloudflare deployments."
-
       - name: Check out repository
-        if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
         uses: actions/checkout@v5
 
-      - name: Set up Node.js
-        if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
-        uses: actions/setup-node@v6
+      - name: Set up mise
+        uses: jdx/mise-action@v3
         with:
-          node-version: 24
-          cache: npm
+          cache: true
 
       - name: Install dependencies
-        if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
-        run: npm ci
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Cloudflare bundle
+        run: pnpm build:cloudflare
 
       - name: Deploy to Cloudflare Workers
-        if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
-        run: npm run deploy
+        run: |
+          printf 'OPENROUTER_API_KEY=%s\n' "$OPENROUTER_API_KEY" > "$RUNNER_TEMP/cloudflare-secrets.env"
+          pnpm exec opennextjs-cloudflare deploy --secrets-file "$RUNNER_TEMP/cloudflare-secrets.env"

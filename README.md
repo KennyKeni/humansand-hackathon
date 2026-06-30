@@ -1,66 +1,113 @@
 # Learn&
 
-AI-powered collaborative learning platform where a professor teaches on a shared whiteboard, and an AI agent monitors comprehension, dynamically pairs students into complementary study groups, and facilitates peer learning -- all in real time.
+AI-powered collaborative learning platform where a Teacher teaches on a shared whiteboard, Students join in real time, and AI agents check comprehension, form complementary study groups, and help peer discussions stay useful.
 
-**Live demo: [learnand.kennykeni.com](https://learnand.kennykeni.com)** (uses OpenRouter free tier, so model quality will be poor)
+**Live demo: [learnand.kennykeni.com](https://learnand.kennykeni.com)**
 
 ## How It Works
 
-1. **Professor teaches** on a shared Excalidraw whiteboard while AI captures snapshots and synthesizes lesson content
-2. **AI checks in** with each student via chat to probe their understanding of the lesson topics
-3. **Complementary grouping** -- when Student A understands X but not Y, and Student B understands Y but not X, the AI pairs them together
-4. **AI joins group chats** as a participant, nudging discussion and helping students teach each other
-5. **Professor gets feedback** -- summaries of group activity and comprehension data surface what the class is struggling with
+1. **Teacher teaches** on a shared Excalidraw whiteboard while AI captures snapshots and synthesizes lesson context.
+2. **AI checks in** with each Student through a short chat to probe understanding.
+3. **Complementary grouping** pairs Students with different strengths and gaps.
+4. **AI joins group chats** as a participant, nudging discussion when groups get stuck.
+5. **Teacher gets feedback** through summaries of group activity and comprehension data.
 
 ## Tech Stack
 
-- **Framework**: Next.js (App Router)
-- **Backend/DB**: Convex (real-time queries, mutations, actions)
-- **Auth**: Convex Auth (anonymous sign-in with display name)
-- **Whiteboard**: Excalidraw (collaborative, real-time sync)
-- **AI**: OpenRouter via Vercel AI SDK
-- **Styling**: Tailwind CSS + shadcn/ui
+- **Framework**: Next.js App Router
+- **Deployment**: Cloudflare Workers through OpenNext
+- **Backend/DB**: Convex for real-time queries, mutations, and actions
+- **Auth**: Convex Auth with anonymous sign-in and display name capture
+- **Whiteboard**: Excalidraw with real-time sync
+- **AI**: OpenRouter through AI SDK
+- **Styling**: Tailwind CSS and shadcn/ui
 - **Language**: TypeScript
 
-## Getting Started
+## Prerequisites
 
-### Prerequisites
-
-- Node.js 18+
+- `mise`
+- Node `24.16.0`
+- pnpm `11.x`
 - A Convex account
 - An OpenRouter API key
+- A Cloudflare account for Worker deployment
 
-### Setup
+Install the pinned local tools:
 
 ```bash
-npm install
+mise install
 ```
 
-### Environment Variables
+## Setup
+
+```bash
+pnpm install
+```
+
+Local Convex development sets the usual Convex variables:
+
+```bash
+pnpm convex:dev
+```
+
+Then run the Next.js app in another terminal:
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## Environment Variables
+
+Cloudflare Worker runtime:
 
 ```env
-CONVEX_DEPLOYMENT=      # Auto-set by `npx convex dev`
-NEXT_PUBLIC_CONVEX_URL= # Auto-set by `npx convex dev`
-OPENROUTER_API_KEY=     # For AI actions
+NEXT_PUBLIC_CONVEX_URL=https://spotted-starling-965.convex.cloud
+OPENROUTER_API_KEY=...
 ```
 
-### Development
+Set the Worker secret with Wrangler:
 
 ```bash
-# Start Convex backend (runs in background, syncs functions)
-npx convex dev
-
-# In a separate terminal, start the Next.js dev server
-npm run dev
+pnpm exec wrangler secret put OPENROUTER_API_KEY --name learnand
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to get started.
+Convex runtime:
 
-## Usage
+```env
+OPENROUTER_API_KEY=...
+CONVEX_SITE_URL=https://spotted-starling-965.convex.site
+```
 
-1. Enter your name on the landing page
-2. Create a new session from the lobby (you become the professor/creator)
-3. Share the session code with students
-4. Start teaching -- draw on the whiteboard, then hit "Check-In" to synthesize and probe students
-5. AI matches students into complementary groups automatically
-6. Monitor group discussions and view AI-generated summaries
+Set Convex runtime variables with:
+
+```bash
+pnpm convex env set OPENROUTER_API_KEY
+pnpm convex env set CONVEX_SITE_URL https://spotted-starling-965.convex.site
+```
+
+## Commands
+
+```bash
+pnpm lint              # ESLint over source files
+pnpm typecheck         # TypeScript check
+pnpm check             # lint, typecheck, Cloudflare type check, Next build
+pnpm build             # Next.js build
+pnpm build:cloudflare  # OpenNext Cloudflare bundle
+pnpm preview           # Local Cloudflare preview
+pnpm deploy            # Deploy Worker to Cloudflare
+pnpm deploy:convex     # Deploy Convex functions
+```
+
+## Cleanup Queue
+
+The safe hygiene pass removes unused starter assets, dormant simulation code, stale AI provider packages, and unused UI exports. Deeper architecture work should happen after stable checks are in place, in this order:
+
+1. Extract named AI task modules for prompts, model setup, and structured outputs.
+2. Add room/group access helpers for role normalization, room IDs, and membership assertions.
+3. Extract teaching capture workflow behind `recordSnapshot` and `synthesize`.
+4. Extract check-in workflow behind `start`, `respond`, `complete`, `proposeGroups`, and `openDiscussionRooms`.
+5. Extract a `useSessionWorkspace(code)` view-model hook from the session route.
+
+Do not delete public Convex maintenance functions or migrate `middleware.ts` to `proxy.ts` without a separate smoke test.

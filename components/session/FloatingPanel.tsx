@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { X, MessageSquare, Maximize2, Minimize2 } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { MemberList } from "./MemberList";
@@ -55,13 +55,7 @@ export function FloatingPanel({
 
   const [tab, setTab] = useState<Tab>("chat");
   const [expanded, setExpanded] = useState(false);
-
-  // Auto-switch to check-in tab when check-in becomes available
-  useEffect(() => {
-    if (hasCheckInTab && tab === "chat") {
-      setTab("check-in");
-    }
-  }, [hasCheckInTab]);
+  const visibleTab = hasCheckInTab && tab === "chat" ? "check-in" : tab;
 
   if (!isOpen) {
     return (
@@ -85,14 +79,14 @@ export function FloatingPanel({
     >
       <div className="flex items-center justify-between border-b border-parchment px-3 py-2 shrink-0">
         <div className="flex gap-1">
-          <TabButton active={tab === "chat"} onClick={() => setTab("chat")}>
+          <TabButton active={visibleTab === "chat"} onClick={() => setTab("chat")}>
             Chat
           </TabButton>
-          <TabButton active={tab === "members"} onClick={() => setTab("members")}>
+          <TabButton active={visibleTab === "members"} onClick={() => setTab("members")}>
             Members ({members.length})
           </TabButton>
           {hasCheckInTab && (
-            <TabButton active={tab === "check-in"} onClick={() => setTab("check-in")}>
+            <TabButton active={visibleTab === "check-in"} onClick={() => setTab("check-in")}>
               Check-In
             </TabButton>
           )}
@@ -118,20 +112,20 @@ export function FloatingPanel({
         </div>
       </div>
       <div className="flex-1 min-h-0 flex flex-col">
-        {tab === "chat" ? (
+        {visibleTab === "chat" ? (
           <ChatPanel
             sessionId={sessionId}
             currentUserId={currentUserId}
             activeContext={activeContext}
             isEnded={isEnded}
           />
-        ) : tab === "members" ? (
+        ) : visibleTab === "members" ? (
           <MemberList
             members={members}
             role={role}
             sessionId={sessionId}
           />
-        ) : tab === "check-in" ? (
+        ) : visibleTab === "check-in" ? (
           isCreator ? (
             <TeacherCheckInDashboard
               sessionId={sessionId}

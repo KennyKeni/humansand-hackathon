@@ -193,7 +193,7 @@ export function CheckInChat({
           ) : (
             <>
               <CheckCheck className="h-3.5 w-3.5 mr-1.5" />
-              I'm Done
+              I&apos;m Done
             </>
           )}
         </Button>
